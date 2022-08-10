@@ -6,7 +6,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -16,12 +20,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -83,7 +92,66 @@ public class ASpike {
     static class TestApplication extends Application {
         @Override
         public Set<Class<?>> getClasses() {
-            return Set.of(TestResource.class);
+            return Set.of(TestResource.class, StringMessageBodyWriter.class);
+        }
+    }
+
+    // Providers 里的信息，是从 Application 中获取到的。
+    static class TestProviders implements Providers {
+        private Application application;
+        private List<MessageBodyWriter> writers;
+
+        public TestProviders(Application application) {
+            this.application = application;
+            writers = (List<MessageBodyWriter>) this.application.getClasses().stream()
+                    .filter(MessageBodyWriter.class::isAssignableFrom)
+                    // 拿到了 class ， 也应该通过 DI 容器去构造出一个 component
+                    .map(c -> {
+                        try {
+                            return c.getConstructor().newInstance();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }).toList();
+        }
+
+        @Override
+        public <T> MessageBodyReader<T> getMessageBodyReader(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+            return null;
+        }
+
+        @Override
+        public <T> MessageBodyWriter<T> getMessageBodyWriter(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+            return writers.stream()
+                    .filter(w -> w.isWriteable(type, genericType, annotations, mediaType))
+                    .findFirst().get();
+        }
+
+        @Override
+        public <T extends Throwable> ExceptionMapper<T> getExceptionMapper(Class<T> type) {
+            return null;
+        }
+
+        @Override
+        public <T> ContextResolver<T> getContextResolver(Class<T> contextType, MediaType mediaType) {
+            return null;
+        }
+    }
+
+
+    static class StringMessageBodyWriter implements MessageBodyWriter<String> {
+
+        @Override
+        public boolean isWriteable(Class type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+            return type == String.class;
+        }
+
+        @Override
+        public void writeTo(String s, Class type, Type genericType, Annotation[] annotations, MediaType mediaType,
+                            MultivaluedMap httpHeaders, OutputStream entityStream) throws WebApplicationException {
+            PrintWriter writer = new PrintWriter(entityStream);
+            writer.write(s);
+            writer.flush();
         }
     }
 
