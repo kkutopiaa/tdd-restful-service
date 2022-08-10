@@ -4,6 +4,9 @@ package com.kuan;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Application;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -17,6 +20,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -34,13 +38,7 @@ public class ASpike {
 
         ServletContextHandler handler = new ServletContextHandler(server, "/");
 
-        handler.addServlet(new ServletHolder(new HttpServlet() {
-            @Override
-            protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-                resp.getWriter().write("qxk test");
-                resp.getWriter().flush();
-            }
-        }), "/");
+        handler.addServlet(new ServletHolder(new ResourceServlet(new TestApplication())), "/");
 
 
         server.setHandler(handler);
@@ -63,8 +61,39 @@ public class ASpike {
         System.out.println(response);
         System.out.println(response.body());
 
-        assertEquals("qxk test", response.body());
+        assertEquals("qxk test in resource", response.body());
     }
 
+
+    @Path("/test")
+    static class TestResource {
+        @GET
+        public String get() {
+            return "qxk test in resource";
+        }
+    }
+
+
+    static class TestApplication extends Application {
+        @Override
+        public Set<Class<?>> getClasses() {
+            return Set.of(TestResource.class);
+        }
+    }
+
+    static class ResourceServlet extends HttpServlet {
+        private Application application;
+
+        public ResourceServlet(Application application) {
+            this.application = application;
+        }
+
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            String result = new TestResource().get();
+            resp.getWriter().write(result);
+            resp.getWriter().flush();
+        }
+    }
 
 }
