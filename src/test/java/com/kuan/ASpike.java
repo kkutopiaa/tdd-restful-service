@@ -50,8 +50,8 @@ public class ASpike {
 
         ServletContextHandler handler = new ServletContextHandler(server, "/");
 
-        handler.addServlet(new ServletHolder(new ResourceServlet(new TestApplication())), "/");
-
+        TestApplication application = new TestApplication();
+        handler.addServlet(new ServletHolder(new ResourceServlet(application, new TestProviders(application))), "/");
 
         server.setHandler(handler);
         server.start();
@@ -140,6 +140,8 @@ public class ASpike {
 
 
     static class StringMessageBodyWriter implements MessageBodyWriter<String> {
+        public StringMessageBodyWriter() {
+        }
 
         @Override
         public boolean isWriteable(Class type, Type genericType, Annotation[] annotations, MediaType mediaType) {
@@ -157,9 +159,15 @@ public class ASpike {
 
     static class ResourceServlet extends HttpServlet {
         private Application application;
+        private Providers providers;
 
         public ResourceServlet(Application application) {
             this.application = application;
+        }
+
+        public ResourceServlet(Application application, Providers providers) {
+            this.application = application;
+            this.providers = providers;
         }
 
         @Override
@@ -173,9 +181,12 @@ public class ASpike {
             // 换成 dispatch
 //            String result = new TestResource().get();
 
+            MessageBodyWriter<Object> writer = (MessageBodyWriter<Object>) providers.getMessageBodyWriter(result.getClass(), null, null, null);
+            writer.writeTo(result, null, null, null, null, null, resp.getOutputStream());
+
             // 换成 MessageBodyWriter
-            resp.getWriter().write(result.toString());
-            resp.getWriter().flush();
+//            resp.getWriter().write(result.toString());
+//            resp.getWriter().flush();
         }
 
         Object dispatch(HttpServletRequest req, Stream<Class<?>> rootResources) {
