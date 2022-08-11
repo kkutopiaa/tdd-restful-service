@@ -186,17 +186,25 @@ public class ASpike {
     }
 
     static class ResourceServlet extends HttpServlet {
-        private Application application;
+        private Context context;
+        private TestApplication application;
         private Providers providers;
 
-        public ResourceServlet(Application application) {
-            this.application = application;
-        }
-
-        public ResourceServlet(Application application, Providers providers) {
+        public ResourceServlet(TestApplication application, Providers providers) {
             this.application = application;
             this.providers = providers;
+
+            ContextConfig config = new ContextConfig();
+
+            List<Class<?>> rootResources = application.getClasses().stream().filter(c -> c.isAnnotationPresent(Path.class)).toList();
+            for (Class rootResource : rootResources) {
+                config.component(rootResource, rootResource);
+            }
+
+
+            context = config.getContext();
         }
+
 
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws  IOException {
@@ -204,26 +212,24 @@ public class ASpike {
 
 
             Object result = dispatch(req, rootResources);
-
-
             // 换成 dispatch
 //            String result = new TestResource().get();
 
+
             MessageBodyWriter<Object> writer = (MessageBodyWriter<Object>) providers.getMessageBodyWriter(result.getClass(), null, null, null);
             writer.writeTo(result, null, null, null, null, null, resp.getOutputStream());
-
             // 换成 MessageBodyWriter
 //            resp.getWriter().write(result.toString());
 //            resp.getWriter().flush();
         }
 
         Object dispatch(HttpServletRequest req, Stream<Class<?>> rootResources) {
-
             try {
                 Class<?> rootClass = rootResources.findFirst().get();
-                // >>>>>  用 di 去构造一个 component 出来。
+                // >>>>>  应该用 di 去构造一个 component 出来。
+//                Object rootResource = rootClass.getConstructor().newInstance();
 
-                Object rootResource = rootClass.getConstructor().newInstance();
+                Object rootResource = context.get(ComponentRef.of(rootClass)).get();
                 Method method = Arrays.stream(rootClass.getMethods()).filter(m -> m.isAnnotationPresent(GET.class)).findFirst().get();
                 return method.invoke(rootResource);
             } catch (Exception e) {
