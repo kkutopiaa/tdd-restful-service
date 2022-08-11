@@ -79,18 +79,23 @@ public class ASpike {
         System.out.println(response);
         System.out.println(response.body());
 
-        assertEquals("prefixqxk test in resource", response.body());
+        assertEquals("prefixprefixqxk test in resource", response.body());
     }
 
 
     @Path("/test")
     static class TestResource {
+
+        @Inject
+        @Named("prefix")
+        String prefix;
+
         public TestResource() {
         }
 
         @GET
         public String get() {
-            return "qxk test in resource";
+            return prefix + "qxk test in resource";
         }
     }
 
@@ -200,7 +205,7 @@ public class ASpike {
             for (Class rootResource : rootResources) {
                 config.component(rootResource, rootResource);
             }
-
+            config.from(application.getConfig());
 
             context = config.getContext();
         }
