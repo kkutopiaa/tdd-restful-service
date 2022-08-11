@@ -21,6 +21,7 @@ dependencies {
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
     // https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
+    implementation("jakarta.inject:jakarta.inject-api:2.0.1")
 }
 
 tasks.getByName<Test>("test") {

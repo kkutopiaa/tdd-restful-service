@@ -2,8 +2,11 @@ package com.kuan;
 
 
 import com.tdd.di.ComponentRef;
+import com.tdd.di.Config;
 import com.tdd.di.Context;
 import com.tdd.di.ContextConfig;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -76,7 +79,7 @@ public class ASpike {
         System.out.println(response);
         System.out.println(response.body());
 
-        assertEquals("qxk test in resource", response.body());
+        assertEquals("prefixqxk test in resource", response.body());
     }
 
 
@@ -97,6 +100,15 @@ public class ASpike {
         public Set<Class<?>> getClasses() {
             return Set.of(TestResource.class, StringMessageBodyWriter.class);
         }
+
+        public Config getConfig() {
+            return new Config() {
+                @Named("prefix")
+                public String name = "prefix";
+            };
+        }
+
+
     }
 
     // Providers 里的信息，是从 Application 中获取到的。
@@ -107,12 +119,13 @@ public class ASpike {
         public TestProviders(Application application) {
             this.application = application;
 
-
-
             List<Class<?>> writerClasses = this.application.getClasses().stream()
                     .filter(MessageBodyWriter.class::isAssignableFrom).toList();
 
             ContextConfig config = new ContextConfig();
+            TestApplication app = (TestApplication) application;
+            config.from(app.getConfig());
+
             for (Class writerClass : writerClasses) {
                 config.component(writerClass, writerClass);
             }
@@ -149,6 +162,11 @@ public class ASpike {
 
 
     static class StringMessageBodyWriter implements MessageBodyWriter<String> {
+
+        @Inject
+        @Named("prefix")
+        String prefix;
+
         public StringMessageBodyWriter() {
         }
 
@@ -161,6 +179,7 @@ public class ASpike {
         public void writeTo(String s, Class type, Type genericType, Annotation[] annotations, MediaType mediaType,
                             MultivaluedMap httpHeaders, OutputStream entityStream) throws WebApplicationException {
             PrintWriter writer = new PrintWriter(entityStream);
+            writer.write(prefix);
             writer.write(s);
             writer.flush();
         }
