@@ -101,6 +101,9 @@ public class ASpike {
 
 
     static class TestApplication extends Application {
+
+        private final Context context;
+
         @Override
         public Set<Class<?>> getClasses() {
             return Set.of(TestResource.class, StringMessageBodyWriter.class);
@@ -113,33 +116,44 @@ public class ASpike {
             };
         }
 
+        public Context getContext() {
+            return context;
+        }
 
+        public TestApplication() {
+            ContextConfig config = new ContextConfig();
+            config.from(getConfig());
+
+            List<Class<?>> writerClasses = this.getClasses().stream()
+                    .filter(MessageBodyWriter.class::isAssignableFrom).toList();
+            for (Class writerClass : writerClasses) {
+                config.component(writerClass, writerClass);
+            }
+
+
+            List<Class<?>> rootResources = getClasses().stream().filter(c -> c.isAnnotationPresent(Path.class)).toList();
+            for (Class rootResource : rootResources) {
+                config.component(rootResource, rootResource);
+            }
+
+            context = config.getContext();
+        }
     }
 
     // Providers 里的信息，是从 Application 中获取到的。
     static class TestProviders implements Providers {
-        private Application application;
+        private TestApplication application;
         private List<MessageBodyWriter> writers;
 
-        public TestProviders(Application application) {
+        public TestProviders(TestApplication application) {
             this.application = application;
 
             List<Class<?>> writerClasses = this.application.getClasses().stream()
                     .filter(MessageBodyWriter.class::isAssignableFrom).toList();
 
-            ContextConfig config = new ContextConfig();
-            TestApplication app = (TestApplication) application;
-            config.from(app.getConfig());
-
-            for (Class writerClass : writerClasses) {
-                config.component(writerClass, writerClass);
-            }
-            Context context = config.getContext();
-
             writers = (List<MessageBodyWriter>) writerClasses.stream()
-                    .map(c -> context.get(ComponentRef.of(c)).get())
+                    .map(c -> application.getContext().get(ComponentRef.of(c)).get())
                     .toList();
-
         }
 
         @Override
@@ -191,7 +205,6 @@ public class ASpike {
     }
 
     static class ResourceServlet extends HttpServlet {
-        private Context context;
         private TestApplication application;
         private Providers providers;
 
@@ -199,15 +212,7 @@ public class ASpike {
             this.application = application;
             this.providers = providers;
 
-            ContextConfig config = new ContextConfig();
 
-            List<Class<?>> rootResources = application.getClasses().stream().filter(c -> c.isAnnotationPresent(Path.class)).toList();
-            for (Class rootResource : rootResources) {
-                config.component(rootResource, rootResource);
-            }
-            config.from(application.getConfig());
-
-            context = config.getContext();
         }
 
 
@@ -234,7 +239,7 @@ public class ASpike {
                 // >>>>>  应该用 di 去构造一个 component 出来。
 //                Object rootResource = rootClass.getConstructor().newInstance();
 
-                Object rootResource = context.get(ComponentRef.of(rootClass)).get();
+                Object rootResource = application.getContext().get(ComponentRef.of(rootClass)).get();
                 Method method = Arrays.stream(rootClass.getMethods()).filter(m -> m.isAnnotationPresent(GET.class)).findFirst().get();
                 return method.invoke(rootResource);
             } catch (Exception e) {
