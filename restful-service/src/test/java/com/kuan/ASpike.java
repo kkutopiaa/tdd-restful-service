@@ -1,6 +1,8 @@
 package com.kuan;
 
 
+import com.tdd.di.ComponentRef;
+import com.tdd.di.Context;
 import com.tdd.di.ContextConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -104,16 +106,22 @@ public class ASpike {
 
         public TestProviders(Application application) {
             this.application = application;
-            writers = (List<MessageBodyWriter>) this.application.getClasses().stream()
-                    .filter(MessageBodyWriter.class::isAssignableFrom)
-                    // 拿到了 class ， 也应该通过 DI 容器去构造出一个 component
-                    .map(c -> {
-                        try {
-                            return c.getConstructor().newInstance();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    }).toList();
+
+
+
+            List<Class<?>> writerClasses = this.application.getClasses().stream()
+                    .filter(MessageBodyWriter.class::isAssignableFrom).toList();
+
+            ContextConfig config = new ContextConfig();
+            for (Class writerClass : writerClasses) {
+                config.component(writerClass, writerClass);
+            }
+            Context context = config.getContext();
+
+            writers = (List<MessageBodyWriter>) writerClasses.stream()
+                    .map(c -> context.get(ComponentRef.of(c)).get())
+                    .toList();
+
         }
 
         @Override
