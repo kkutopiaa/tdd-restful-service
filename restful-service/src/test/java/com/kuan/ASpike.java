@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Application;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -138,6 +139,21 @@ public class ASpike {
 
             context = config.getContext();
         }
+
+        public ResourceContext createResourceContext(HttpServletRequest request, HttpServletResponse response) {
+            return new ResourceContext() {
+                @Override
+                public <T> T getResource(Class<T> resourceClass) {
+                    return null;
+                }
+
+                @Override
+                public <T> T initResource(T resource) {
+                    return resource;
+                }
+            };
+        }
+
     }
 
     // Providers 里的信息，是从 Application 中获取到的。
@@ -217,11 +233,13 @@ public class ASpike {
 
 
         @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws  IOException {
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws NullPointerException, IOException {
             Stream<Class<?>> rootResources = application.getClasses().stream().filter(c -> c.isAnnotationPresent(Path.class));
 
+            ResourceContext rc = application.createResourceContext(req, resp);
 
-            Object result = dispatch(req, rootResources);
+
+            Object result = dispatch(req, rootResources, rc);
             // 换成 dispatch
 //            String result = new TestResource().get();
 
@@ -233,13 +251,16 @@ public class ASpike {
 //            resp.getWriter().flush();
         }
 
-        Object dispatch(HttpServletRequest req, Stream<Class<?>> rootResources) {
+        Object dispatch(HttpServletRequest req, Stream<Class<?>> rootResources, ResourceContext rc) {
             try {
                 Class<?> rootClass = rootResources.findFirst().get();
                 // >>>>>  应该用 di 去构造一个 component 出来。
 //                Object rootResource = rootClass.getConstructor().newInstance();
 
-                Object rootResource = application.getContext().get(ComponentRef.of(rootClass)).get();
+                Object rootResource = rc.initResource(
+                        application.getContext().get(ComponentRef.of(rootClass)).get()
+                );
+
                 Method method = Arrays.stream(rootClass.getMethods()).filter(m -> m.isAnnotationPresent(GET.class)).findFirst().get();
                 return method.invoke(rootResource);
             } catch (Exception e) {
