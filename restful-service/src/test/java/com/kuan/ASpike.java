@@ -265,12 +265,13 @@ public class ASpike {
 
 
             Response result = dispatch(req, rootResources, rc);
-            Object entity = result.getEntity();
+            GenericEntity entity = (GenericEntity) result.getEntity();
             // 换成 dispatch
 //            String entity = new TestResource().get();
 
 
-            MessageBodyWriter<Object> writer = (MessageBodyWriter<Object>) providers.getMessageBodyWriter(entity.getClass(), null, null, null);
+            MessageBodyWriter<Object> writer = (MessageBodyWriter<Object>)
+                    providers.getMessageBodyWriter(entity.getRawType(), entity.getType(), null, result.getMediaType());
             writer.writeTo(entity, null, null, null, null, null, resp.getOutputStream());
             // 换成 MessageBodyWriter
 //            resp.getWriter().write(entity.toString());
@@ -290,6 +291,8 @@ public class ASpike {
                 Method method = Arrays.stream(rootClass.getMethods()).filter(m -> m.isAnnotationPresent(GET.class)).findFirst().get();
                 Object result = method.invoke(rootResource);
 
+                GenericEntity entity = new GenericEntity(result, method.getGenericReturnType());
+
                 return new Response() {
                     @Override
                     public int getStatus() {
@@ -303,7 +306,7 @@ public class ASpike {
 
                     @Override
                     public Object getEntity() {
-                        return result;
+                        return entity;
                     }
 
                     @Override
