@@ -256,7 +256,6 @@ public class ASpike {
 
         }
 
-
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws NullPointerException, IOException {
             Stream<Class<?>> rootResources = application.getClasses().stream().filter(c -> c.isAnnotationPresent(Path.class));
@@ -264,21 +263,24 @@ public class ASpike {
             ResourceContext rc = application.createResourceContext(req, resp);
 
 
-            Response result = dispatch(req, rootResources, rc);
-            GenericEntity entity = (GenericEntity) result.getEntity();
+            OutboundResponse result = dispatch(req, rootResources, rc);
+            GenericEntity entity = result.getGenericEntity();
+
             // 换成 dispatch
 //            String entity = new TestResource().get();
 
 
             MessageBodyWriter<Object> writer = (MessageBodyWriter<Object>)
-                    providers.getMessageBodyWriter(entity.getRawType(), entity.getType(), null, result.getMediaType());
-            writer.writeTo(entity, null, null, null, null, null, resp.getOutputStream());
+                    providers.getMessageBodyWriter(entity.getRawType(), entity.getType(), result.getAnnotations(),
+                            result.getMediaType());
+            writer.writeTo(entity, entity.getRawType(), entity.getType(), result.getAnnotations()
+                    , result.getMediaType(), result.getHeaders(), resp.getOutputStream());
             // 换成 MessageBodyWriter
 //            resp.getWriter().write(entity.toString());
 //            resp.getWriter().flush();
         }
 
-        Response dispatch(HttpServletRequest req, Stream<Class<?>> rootResources, ResourceContext rc) {
+        OutboundResponse dispatch(HttpServletRequest req, Stream<Class<?>> rootResources, ResourceContext rc) {
             try {
                 Class<?> rootClass = rootResources.findFirst().get();
                 // >>>>>  应该用 di 去构造一个 component 出来。
@@ -293,7 +295,18 @@ public class ASpike {
 
                 GenericEntity entity = new GenericEntity(result, method.getGenericReturnType());
 
-                return new Response() {
+                return new OutboundResponse() {
+
+                    @Override
+                    GenericEntity getGenericEntity() {
+                        return entity;
+                    }
+
+                    @Override
+                    Annotation[] getAnnotations() {
+                        return new Annotation[0];
+                    }
+
                     @Override
                     public int getStatus() {
                         return 0;
@@ -430,5 +443,14 @@ public class ASpike {
 
         }
     }
+
+    static abstract class OutboundResponse extends Response{
+        abstract GenericEntity getGenericEntity();
+
+        abstract Annotation[] getAnnotations();
+
+    }
+
+
 
 }
