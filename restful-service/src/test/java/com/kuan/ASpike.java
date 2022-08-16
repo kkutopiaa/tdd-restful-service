@@ -14,9 +14,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.Application;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.*;
 import jakarta.ws.rs.ext.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -98,6 +96,35 @@ public class ASpike {
         public String get() {
             return prefix + "qxk test in resource";
         }
+
+        // 返回的响应需要的信息：
+        // status code, headers(content-type ...), media type(属于 headers 里的，只是 jax-rs 规范里单独强调了这个属性), body
+
+        @GET
+        @Path("/with-headers")
+        public Response withHeaders() {
+            return Response.ok()
+                    .header("Set-Cookie", new Cookie.Builder("SESSION_ID").value("SID").build())
+                    .entity("string", new Annotation[0])
+                    .build();
+        }
+
+        @GET
+        @Path("/generic")
+        public GenericEntity<List<String>> generic() {
+            // 泛型，通过 GenericEntity 父类的类型信息去获取
+            return new GenericEntity<>(List.of("a", "b")) {
+            };
+        }
+
+        @GET
+        @Path("/pojo-generic")
+        public List<String> pojoGeneric() {
+            // 泛型，通过 反射，去拿方法的泛型化后的返回值
+            return List.of("a", "b");
+        }
+
+
     }
 
 
