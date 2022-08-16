@@ -1,4 +1,4 @@
-package com.kuan;
+package com.kuan.rest;
 
 
 import com.tdd.di.ComponentRef;
