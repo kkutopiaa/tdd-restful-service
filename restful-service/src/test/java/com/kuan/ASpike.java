@@ -451,6 +451,11 @@ public class ASpike {
 
     }
 
+    interface ResourceRouter {
+        OutboundResponse dispatch(HttpServletRequest request, ResourceContext resourceContext);
+
+    }
+
 
 
 }
