@@ -34,9 +34,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -266,19 +264,20 @@ public class ASpike {
             ResourceContext rc = application.createResourceContext(req, resp);
 
 
-            Object result = dispatch(req, rootResources, rc);
+            Response result = dispatch(req, rootResources, rc);
+            Object entity = result.getEntity();
             // 换成 dispatch
-//            String result = new TestResource().get();
+//            String entity = new TestResource().get();
 
 
-            MessageBodyWriter<Object> writer = (MessageBodyWriter<Object>) providers.getMessageBodyWriter(result.getClass(), null, null, null);
-            writer.writeTo(result, null, null, null, null, null, resp.getOutputStream());
+            MessageBodyWriter<Object> writer = (MessageBodyWriter<Object>) providers.getMessageBodyWriter(entity.getClass(), null, null, null);
+            writer.writeTo(entity, null, null, null, null, null, resp.getOutputStream());
             // 换成 MessageBodyWriter
-//            resp.getWriter().write(result.toString());
+//            resp.getWriter().write(entity.toString());
 //            resp.getWriter().flush();
         }
 
-        Object dispatch(HttpServletRequest req, Stream<Class<?>> rootResources, ResourceContext rc) {
+        Response dispatch(HttpServletRequest req, Stream<Class<?>> rootResources, ResourceContext rc) {
             try {
                 Class<?> rootClass = rootResources.findFirst().get();
                 // >>>>>  应该用 di 去构造一个 component 出来。
@@ -289,7 +288,139 @@ public class ASpike {
                 );
 
                 Method method = Arrays.stream(rootClass.getMethods()).filter(m -> m.isAnnotationPresent(GET.class)).findFirst().get();
-                return method.invoke(rootResource);
+                Object result = method.invoke(rootResource);
+
+                return new Response() {
+                    @Override
+                    public int getStatus() {
+                        return 0;
+                    }
+
+                    @Override
+                    public StatusType getStatusInfo() {
+                        return null;
+                    }
+
+                    @Override
+                    public Object getEntity() {
+                        return result;
+                    }
+
+                    @Override
+                    public <T> T readEntity(Class<T> entityType) {
+                        return null;
+                    }
+
+                    @Override
+                    public <T> T readEntity(GenericType<T> entityType) {
+                        return null;
+                    }
+
+                    @Override
+                    public <T> T readEntity(Class<T> entityType, Annotation[] annotations) {
+                        return null;
+                    }
+
+                    @Override
+                    public <T> T readEntity(GenericType<T> entityType, Annotation[] annotations) {
+                        return null;
+                    }
+
+                    @Override
+                    public boolean hasEntity() {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean bufferEntity() {
+                        return false;
+                    }
+
+                    @Override
+                    public void close() {
+
+                    }
+
+                    @Override
+                    public MediaType getMediaType() {
+                        return null;
+                    }
+
+                    @Override
+                    public Locale getLanguage() {
+                        return null;
+                    }
+
+                    @Override
+                    public int getLength() {
+                        return 0;
+                    }
+
+                    @Override
+                    public Set<String> getAllowedMethods() {
+                        return null;
+                    }
+
+                    @Override
+                    public Map<String, NewCookie> getCookies() {
+                        return null;
+                    }
+
+                    @Override
+                    public EntityTag getEntityTag() {
+                        return null;
+                    }
+
+                    @Override
+                    public Date getDate() {
+                        return null;
+                    }
+
+                    @Override
+                    public Date getLastModified() {
+                        return null;
+                    }
+
+                    @Override
+                    public URI getLocation() {
+                        return null;
+                    }
+
+                    @Override
+                    public Set<Link> getLinks() {
+                        return null;
+                    }
+
+                    @Override
+                    public boolean hasLink(String relation) {
+                        return false;
+                    }
+
+                    @Override
+                    public Link getLink(String relation) {
+                        return null;
+                    }
+
+                    @Override
+                    public Link.Builder getLinkBuilder(String relation) {
+                        return null;
+                    }
+
+                    @Override
+                    public MultivaluedMap<String, Object> getMetadata() {
+                        return null;
+                    }
+
+                    @Override
+                    public MultivaluedMap<String, String> getStringHeaders() {
+                        return null;
+                    }
+
+                    @Override
+                    public String getHeaderString(String name) {
+                        return null;
+                    }
+                };
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
