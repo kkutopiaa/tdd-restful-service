@@ -1,5 +1,7 @@
 plugins {
     id("java")
+    `java-library`
+    jacoco
 }
 
 group = "com.kuan"
@@ -20,10 +22,17 @@ dependencies {
     // https://mvnrepository.com/artifact/jakarta.ws.rs/jakarta.ws.rs-api
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
     // https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api
-    compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
+    implementation("jakarta.servlet:jakarta.servlet-api:6.0.0")
     implementation("jakarta.inject:jakarta.inject-api:2.0.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+    testImplementation("org.mockito:mockito-core:4.7.0")
 }
 
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
