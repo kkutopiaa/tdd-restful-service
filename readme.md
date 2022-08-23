@@ -9,7 +9,7 @@ spike： 并不是把所有细节都理解完，目的是花最小的成本，�
 清楚了需要在什么地方使用 DI 注入容器。  
 
 初步 spike 之后，得到了一个较为清晰的架构愿景：  
-![](imgs/01.初步Spike之后.jpg)
+![](imgs/01.初步Spike之后的架构愿景.jpg)
 
 
 
@@ -19,12 +19,12 @@ spike： 并不是把所有细节都理解完，目的是花最小的成本，�
 这部分的架构愿景现在仍是不清晰的，需要进一步 Spike。
 
 然后得到了架构愿景：
-![](imgs/02.Spike-DI 之后.jpg)
+![](imgs/02.Spike-DI 之后的架构愿景.jpg)
 
 之后，需要 Spike 下 Resource Dispatcher 的部分。
 然后进一步得到了架构愿景和调用栈顺序：
-![](imgs/03.Spike-dispatch之后.png)
-![](imgs/04.Spike-dispatch之后的调用栈顺序.jpg)
+![](imgs/03.Spike-dispatch之后的架构愿景.png)
+![](imgs/04.Spike-dispatch之后的时序图.jpg)
 得到了以下的明确信息：
 - ResourceServlet：以 Servlet 的形式作为入口，处理 Http 请求。
 - Application：指明 RESTful 应用所需的所有组件，比如 Root Resource、Providers 等，也是对于框架提供的服务的访问入口。
@@ -56,11 +56,28 @@ spike： 并不是把所有细节都理解完，目的是花最小的成本，�
 首先实现 ResourceServlet，细化功能列表：
 - ResourceServlet
   - 将请求派分给对应的资源（Resource），并根据返回的状态、超媒体类型、内容，响应 Http 请求
-  - 使用 OutboundResponse 的 status 作为 Http Response 的状态；
-  - 使用 OutboundResponse 的 headers 作为 Http Response 的 Http Headers；
-  - 通过 MessageBodyWriter 将 OutboundResponse 的 GenericEntity 写回为 Body；
-  - 如果找不到对应的 MessageBodyWriter，则返回 500 族错误
+    - 使用 OutboundResponse 的 status 作为 Http Response 的状态；
+    - 使用 OutboundResponse 的 headers 作为 Http Response 的 Http Headers；
+    - 通过 MessageBodyWriter 将 OutboundResponse 的 GenericEntity 写回为 Body；
+    - 如果找不到对应的 MessageBodyWriter，则返回 500 族错误
   - 当资源方法抛出异常时，根据异常影响 Http 请求
-  - 如果抛出 WebApplicationException，且 response 不为 null，则使用 response 响应 Http
-  - 如果抛出 WebApplicationException，而 response 为 null，则通过异常的具体类型查找 ExceptionMapper，生产 response 响应 Http 请求
-  - 如果抛出的不是 WebApplicationException，则通过异常的具体类型查找 ExceptionMapper，生产 response 响应 Http 请求
+    - 如果抛出 WebApplicationException，且 response 不为 null，则使用 response 响应 Http
+    - 如果抛出 WebApplicationException，而 response 为 null，则通过异常的具体类型查找 ExceptionMapper，生产 response 响应 Http 请求
+    - 如果抛出的不是 WebApplicationException，则通过异常的具体类型查找 ExceptionMapper，生产 response 响应 Http 请求
+
+
+  
+在写 com.kuan.rest.ResourceServletTest.should_use_http_headers_from_response 测试时，新增了一个 RuntimeDelegate 扩展点，所以架构愿景会发生改变，如下：
+![](imgs/05.增加RuntimeDelegate后的架构愿景.jpg)
+
+![](imgs/06.增加RuntimeDelegate后的时序图.jpg)
+
+任务列表也会新增，针对 RuntimeDelegate 组件的任务列表如下：
+- RuntimeDelegate
+  - 为 MediaType 提供 HeaderDelegate
+  - 为 CacheControl 提供 HeaderDelegate
+  - 为 Cookie 提供 HeaderDelegates
+  - 为 EntityTag 提供 HeaderDelegate
+  - 为 Link 提供 HeaderDelegate
+  - 为 NewCookie 提供 HeaderDelegate
+  - 为 Date 提供 HeaderDelegate
