@@ -26,6 +26,9 @@ dependencies {
     implementation("jakarta.inject:jakarta.inject-api:2.0.1")
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
     testImplementation("org.mockito:mockito-core:4.7.0")
+
+    implementation("org.slf4j:slf4j-api:2.0.0")
+    implementation("org.slf4j:slf4j-simple:2.0.0")
 }
 
 tasks.getByName<Test>("test") {

@@ -49,7 +49,9 @@ public abstract class ServletTest {
 
     public HttpResponse<String> get(String path) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder(path(path)).GET().build();
+        URI uri = path(path);
+        System.out.println("in get , uri : " + uri);
+        HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
         return client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
