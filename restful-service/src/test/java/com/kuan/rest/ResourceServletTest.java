@@ -4,6 +4,7 @@ import jakarta.servlet.Servlet;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.MessageBodyWriter;
 import jakarta.ws.rs.ext.Providers;
 import jakarta.ws.rs.ext.RuntimeDelegate;
@@ -73,7 +74,6 @@ public class ResourceServletTest extends ServletTest {
     }
 
 
-
     @Test
     public void should_use_http_headers_from_response() throws Exception {
         response.headers(HttpHeaders.SET_COOKIE, new NewCookie.Builder("SESSION_ID").value("session").build(),
@@ -112,6 +112,17 @@ public class ResourceServletTest extends ServletTest {
         assertEquals("error", httpResponse.body());
     }
 
+    @Test
+    public void should_build_response_by_exception_mapper_if_throw_other_exception() throws Exception {
+        when(router.dispatch(any(), eq(resourceContext))).thenThrow(RuntimeException.class);
+        when(providers.getExceptionMapper(eq(RuntimeException.class)))
+                .thenReturn(exception -> response.status(Response.Status.FORBIDDEN).build());
+
+        HttpResponse<String> httpResponse = get("/test");
+
+        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
+    }
+
 
     class OutboundResponseBuilder {
         Response.Status status = Response.Status.OK;
@@ -148,16 +159,11 @@ public class ResourceServletTest extends ServletTest {
         }
 
         void build(Consumer<OutboundResponse> consumer) {
-            OutboundResponse response = mock(OutboundResponse.class);
-            when(response.getStatus()).thenReturn(status.getStatusCode());
-            when(response.getHeaders()).thenReturn(headers);
-            when(response.getGenericEntity()).thenReturn(entity);
-            when(response.getAnnotations()).thenReturn(annotations);
-            when(response.getMediaType()).thenReturn(mediaType);
-            when(response.getStatusInfo()).thenReturn(status);
-
+            OutboundResponse response = build();
             consumer.accept(response);
+        }
 
+        private void stubMessageBodyWriter() {
             when(providers.getMessageBodyWriter(eq(String.class), eq(String.class), same(annotations), eq(mediaType)))
                     .thenReturn(new MessageBodyWriter<>() {
                         @Override
@@ -176,6 +182,19 @@ public class ResourceServletTest extends ServletTest {
                             writer.flush();
                         }
                     });
+        }
+
+        OutboundResponse build() {
+            OutboundResponse response = mock(OutboundResponse.class);
+            when(response.getStatus()).thenReturn(status.getStatusCode());
+            when(response.getHeaders()).thenReturn(headers);
+            when(response.getGenericEntity()).thenReturn(entity);
+            when(response.getAnnotations()).thenReturn(annotations);
+            when(response.getMediaType()).thenReturn(mediaType);
+            when(response.getStatusInfo()).thenReturn(status);
+
+            stubMessageBodyWriter();
+            return response;
         }
 
 
