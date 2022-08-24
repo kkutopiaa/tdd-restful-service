@@ -26,25 +26,22 @@ import static org.mockito.Mockito.when;
 
 public class ResourceServletTest extends ServletTest {
 
-    private Runtime runtime;
     private ResourceRouter router;
     private ResourceContext resourceContext;
     private Providers providers;
+    private final OutboundResponseBuilder builder = new OutboundResponseBuilder();
 
 
     @Override
     protected Servlet getServlet() {
-        runtime = mock(Runtime.class);
+        Runtime runtime = mock(Runtime.class);
         router = mock(ResourceRouter.class);
         resourceContext = mock(ResourceContext.class);
         providers = mock(Providers.class);
 
-        when(runtime.getResourceRouter())
-                .thenReturn(router);
-        when(runtime.createResourceContext(any(), any()))
-                .thenReturn(resourceContext);
-        when(runtime.getProviders())
-                .thenReturn(providers);
+        when(runtime.getResourceRouter()).thenReturn(router);
+        when(runtime.createResourceContext(any(), any())).thenReturn(resourceContext);
+        when(runtime.getProviders()).thenReturn(providers);
 
         return new ResourceServlet(runtime);
     }
@@ -79,7 +76,7 @@ public class ResourceServletTest extends ServletTest {
                     public void writeTo(String s, Class<?> type, Type genericType, Annotation[] annotations,
                                         MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
                                         OutputStream entityStream)
-                            throws IOException, WebApplicationException {
+                            throws WebApplicationException {
                         PrintWriter writer = new PrintWriter(entityStream);
                         writer.write(s);
                         writer.flush();
@@ -90,25 +87,20 @@ public class ResourceServletTest extends ServletTest {
 
     @Test
     public void should_use_status_from_response() throws Exception {
-        int statusCode = Response.Status.NOT_MODIFIED.getStatusCode();
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        response(statusCode, headers, new GenericEntity<>("entity", String.class), new Annotation[0], MediaType.TEXT_PLAIN_TYPE);
+        builder.status(Response.Status.NOT_MODIFIED).build(router);
 
         HttpResponse<String> httpResponse = get("/test");
 
-        assertEquals(statusCode, httpResponse.statusCode());
+        assertEquals(Response.Status.NOT_MODIFIED.getStatusCode(), httpResponse.statusCode());
     }
 
 
 
     @Test
     public void should_use_http_headers_from_response() throws Exception {
-        MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.addAll("Set-Cookie", new NewCookie.Builder("SESSION_ID").value("session").build(),
-                new NewCookie.Builder("USER_ID").value("user").build());
-        int statusCode = Response.Status.NOT_MODIFIED.getStatusCode();
-        response(statusCode, headers, new GenericEntity<>("entity", String.class), new Annotation[0], MediaType.TEXT_PLAIN_TYPE);
-
+        builder.headers("Set-Cookie", new NewCookie.Builder("SESSION_ID").value("session").build(),
+                        new NewCookie.Builder("USER_ID").value("user").build())
+                .build(router);
 
         HttpResponse<String> httpResponse = get("/test");
 
@@ -118,12 +110,8 @@ public class ResourceServletTest extends ServletTest {
 
     @Test
     public void should_write_entity_to_http_response_using_message_body_writer() throws Exception {
-        GenericEntity<String> entity = new GenericEntity<>("entity", String.class);
-        Annotation[] annotations = new Annotation[0];
-        MediaType mediaType = MediaType.TEXT_PLAIN_TYPE;
-
-        response(Response.Status.OK.getStatusCode(), new MultivaluedHashMap<>(), entity, annotations, mediaType);
-
+        builder.entity(new GenericEntity<>("entity", String.class), new Annotation[0])
+                .build(router);
 
         HttpResponse<String> httpResponse = get("/test");
 
@@ -131,16 +119,41 @@ public class ResourceServletTest extends ServletTest {
     }
 
 
-    private void response(int statusCode, MultivaluedMap<String, Object> headers,
-                          GenericEntity<String> entity, Annotation[] annotations, MediaType mediaType) {
-        OutboundResponse response = mock(OutboundResponse.class);
-        when(response.getStatus()).thenReturn(statusCode);
-        when(response.getHeaders()).thenReturn(headers);
-        when(response.getGenericEntity()).thenReturn(entity);
-        when(response.getAnnotations()).thenReturn(annotations);
-        when(response.getMediaType()).thenReturn(mediaType);
+    class OutboundResponseBuilder {
+        Response.Status status = Response.Status.OK;
+        MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
+        GenericEntity<Object> entity = new GenericEntity<>("entity", String.class);
+        Annotation[] annotations = new Annotation[0];
+        MediaType mediaType = MediaType.TEXT_PLAIN_TYPE;
 
-        when(router.dispatch(any(), eq(resourceContext))).thenReturn(response);
+        public OutboundResponseBuilder status(Response.Status status) {
+            this.status = status;
+            return this;
+        }
+
+        public OutboundResponseBuilder headers(String name, Object... values) {
+            this.headers.addAll(name, values);
+            return this;
+        }
+
+        public OutboundResponseBuilder entity(GenericEntity<Object> entity, Annotation[] annotations) {
+            this.entity = entity;
+            this.annotations = annotations;
+            return this;
+        }
+
+        void build(ResourceRouter router) {
+            OutboundResponse response = mock(OutboundResponse.class);
+            when(response.getStatus()).thenReturn(status.getStatusCode());
+            when(response.getHeaders()).thenReturn(headers);
+            when(response.getGenericEntity()).thenReturn(entity);
+            when(response.getAnnotations()).thenReturn(annotations);
+            when(response.getMediaType()).thenReturn(mediaType);
+
+            when(router.dispatch(any(), eq(resourceContext))).thenReturn(response);
+        }
+
+
     }
 
 
