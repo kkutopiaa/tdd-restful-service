@@ -19,8 +19,7 @@ import java.net.http.HttpResponse;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -62,27 +61,6 @@ public class ResourceServletTest extends ServletTest {
                         return value.getName() + "=" + value.getValue();
                     }
                 });
-
-
-        when(providers.getMessageBodyWriter(eq(String.class), eq(String.class), eq(new Annotation[0]), eq(MediaType.TEXT_PLAIN_TYPE)))
-                .thenReturn(new MessageBodyWriter<>() {
-                    @Override
-                    public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations,
-                                               MediaType mediaType) {
-                        return false;
-                    }
-
-                    @Override
-                    public void writeTo(String s, Class<?> type, Type genericType, Annotation[] annotations,
-                                        MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
-                                        OutputStream entityStream)
-                            throws WebApplicationException {
-                        PrintWriter writer = new PrintWriter(entityStream);
-                        writer.write(s);
-                        writer.flush();
-                    }
-                });
-
     }
 
     @Test
@@ -122,7 +100,7 @@ public class ResourceServletTest extends ServletTest {
     class OutboundResponseBuilder {
         Response.Status status = Response.Status.OK;
         MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
-        GenericEntity<Object> entity = new GenericEntity<>("entity", String.class);
+        GenericEntity<String> entity = new GenericEntity<>("entity", String.class);
         Annotation[] annotations = new Annotation[0];
         MediaType mediaType = MediaType.TEXT_PLAIN_TYPE;
 
@@ -136,7 +114,7 @@ public class ResourceServletTest extends ServletTest {
             return this;
         }
 
-        public OutboundResponseBuilder entity(GenericEntity<Object> entity, Annotation[] annotations) {
+        public OutboundResponseBuilder entity(GenericEntity<String> entity, Annotation[] annotations) {
             this.entity = entity;
             this.annotations = annotations;
             return this;
@@ -151,6 +129,27 @@ public class ResourceServletTest extends ServletTest {
             when(response.getMediaType()).thenReturn(mediaType);
 
             when(router.dispatch(any(), eq(resourceContext))).thenReturn(response);
+
+
+            when(providers.getMessageBodyWriter(eq(String.class), eq(String.class), same(annotations), eq(mediaType)))
+                    .thenReturn(new MessageBodyWriter<>() {
+                        @Override
+                        public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations,
+                                                   MediaType mediaType) {
+                            return false;
+                        }
+
+                        @Override
+                        public void writeTo(String s, Class<?> type, Type genericType, Annotation[] annotations,
+                                            MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
+                                            OutputStream entityStream)
+                                throws WebApplicationException {
+                            PrintWriter writer = new PrintWriter(entityStream);
+                            writer.write(s);
+                            writer.flush();
+                        }
+                    });
+
         }
 
 
