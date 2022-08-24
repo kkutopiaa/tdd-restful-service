@@ -7,7 +7,6 @@ import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.RuntimeDelegate;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.net.http.HttpResponse;
@@ -41,18 +40,16 @@ public class ResourceServletTest extends ServletTest {
 
     @Test
     public void should_use_status_from_response() throws Exception {
-        OutboundResponse response = mock(OutboundResponse.class);
-        when(response.getHeaders())
-                .thenReturn(new MultivaluedHashMap<>());
-        when(response.getStatus())
-                .thenReturn(Response.Status.NOT_MODIFIED.getStatusCode());
-        when(router.dispatch(any(), eq(resourceContext)))
-                .thenReturn(response);
+        int statusCode = Response.Status.NOT_MODIFIED.getStatusCode();
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        response(statusCode, headers);
 
         HttpResponse<String> httpResponse = get("/test");
 
-        assertEquals(Response.Status.NOT_MODIFIED.getStatusCode(), httpResponse.statusCode());
+        assertEquals(statusCode, httpResponse.statusCode());
     }
+
+
 
     @Test
     public void should_use_http_headers_from_response() throws Exception {
@@ -71,17 +68,12 @@ public class ResourceServletTest extends ServletTest {
                     }
                 });
 
-        OutboundResponse response = mock(OutboundResponse.class);
-        when(router.dispatch(any(), eq(resourceContext)))
-                .thenReturn(response);
-        when(response.getStatus())
-                .thenReturn(Response.Status.NOT_MODIFIED.getStatusCode());
 
         MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.addAll("Set-Cookie", new NewCookie.Builder("SESSION_ID").value("session").build(),
                 new NewCookie.Builder("USER_ID").value("user").build());
-        when(response.getHeaders()).thenReturn(headers);
-
+        int statusCode = Response.Status.NOT_MODIFIED.getStatusCode();
+        response(statusCode, headers);
 
 
         HttpResponse<String> httpResponse = get("/test");
@@ -91,7 +83,15 @@ public class ResourceServletTest extends ServletTest {
 
     }
 
-
+    private void response(int statusCode, MultivaluedMap<String, Object> headers) {
+        OutboundResponse response = mock(OutboundResponse.class);
+        when(router.dispatch(any(), eq(resourceContext)))
+                .thenReturn(response);
+        when(response.getStatus())
+                .thenReturn(statusCode);
+        when(response.getHeaders())
+                .thenReturn(headers);
+    }
 
 
 }
