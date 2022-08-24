@@ -10,12 +10,12 @@ import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.http.HttpResponse;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,7 +28,7 @@ public class ResourceServletTest extends ServletTest {
     private ResourceRouter router;
     private ResourceContext resourceContext;
     private Providers providers;
-    private final OutboundResponseBuilder builder = new OutboundResponseBuilder();
+    private final OutboundResponseBuilder response = new OutboundResponseBuilder();
 
 
     @Override
@@ -65,7 +65,7 @@ public class ResourceServletTest extends ServletTest {
 
     @Test
     public void should_use_status_from_response() throws Exception {
-        builder.status(Response.Status.NOT_MODIFIED).build(router);
+        response.status(Response.Status.NOT_MODIFIED).returnFrom(router);
 
         HttpResponse<String> httpResponse = get("/test");
 
@@ -76,9 +76,9 @@ public class ResourceServletTest extends ServletTest {
 
     @Test
     public void should_use_http_headers_from_response() throws Exception {
-        builder.headers("Set-Cookie", new NewCookie.Builder("SESSION_ID").value("session").build(),
+        response.headers("Set-Cookie", new NewCookie.Builder("SESSION_ID").value("session").build(),
                         new NewCookie.Builder("USER_ID").value("user").build())
-                .build(router);
+                .returnFrom(router);
 
         HttpResponse<String> httpResponse = get("/test");
 
@@ -88,12 +88,22 @@ public class ResourceServletTest extends ServletTest {
 
     @Test
     public void should_write_entity_to_http_response_using_message_body_writer() throws Exception {
-        builder.entity(new GenericEntity<>("entity", String.class), new Annotation[0])
-                .build(router);
+        response.entity(new GenericEntity<>("entity", String.class), new Annotation[0])
+                .returnFrom(router);
 
         HttpResponse<String> httpResponse = get("/test");
 
         assertEquals("entity", httpResponse.body());
+    }
+
+
+    @Test
+    public void should_use_response_from_web_application_exception() throws Exception {
+        response.status(Response.Status.FORBIDDEN).throwFrom(router);
+
+        HttpResponse<String> httpResponse = get("/test");
+
+        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
     }
 
 
@@ -120,16 +130,27 @@ public class ResourceServletTest extends ServletTest {
             return this;
         }
 
-        void build(ResourceRouter router) {
+        void returnFrom(ResourceRouter router) {
+            build(response -> when(router.dispatch(any(), eq(resourceContext))).thenReturn(response));
+        }
+
+        void throwFrom(ResourceRouter router) {
+            build(response -> {
+                WebApplicationException exception = new WebApplicationException(response);
+                when(router.dispatch(any(), eq(resourceContext))).thenThrow(exception);
+            });
+        }
+
+        void build(Consumer<OutboundResponse> consumer) {
             OutboundResponse response = mock(OutboundResponse.class);
             when(response.getStatus()).thenReturn(status.getStatusCode());
             when(response.getHeaders()).thenReturn(headers);
             when(response.getGenericEntity()).thenReturn(entity);
             when(response.getAnnotations()).thenReturn(annotations);
             when(response.getMediaType()).thenReturn(mediaType);
+            when(response.getStatusInfo()).thenReturn(status);
 
-            when(router.dispatch(any(), eq(resourceContext))).thenReturn(response);
-
+            consumer.accept(response);
 
             when(providers.getMessageBodyWriter(eq(String.class), eq(String.class), same(annotations), eq(mediaType)))
                     .thenReturn(new MessageBodyWriter<>() {
@@ -149,7 +170,6 @@ public class ResourceServletTest extends ServletTest {
                             writer.flush();
                         }
                     });
-
         }
 
 
