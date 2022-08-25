@@ -60,9 +60,11 @@ spike： 并不是把所有细节都理解完，目的是花最小的成本，�
     - 使用 OutboundResponse 的 headers 作为 Http Response 的 Http Headers；
     - 通过 MessageBodyWriter 将 OutboundResponse 的 GenericEntity 写回为 Body；
     - 如果找不到对应的 MessageBodyWriter，则返回 500 族错误
+    - 如果找不到对应的 HeaderDelegate，则返回 500 族错误
+    - 如果找不到对应的 ExceptionMapper，则返回 500 族错误
+    - 如果 entity 为空，则忽略 body
   - 当资源方法抛出异常时，根据异常影响 Http 请求
     - 如果抛出 WebApplicationException，且 response 不为 null，则使用 response 响应 Http
-    - 如果抛出 WebApplicationException，而 response 为 null，则通过异常的具体类型查找 ExceptionMapper，生产 response 响应 Http 请求
     - 如果抛出的不是 WebApplicationException，则通过异常的具体类型查找 ExceptionMapper，生产 response 响应 Http 请求
 
 
