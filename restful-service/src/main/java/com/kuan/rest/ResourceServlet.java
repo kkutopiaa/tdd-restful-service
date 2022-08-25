@@ -17,15 +17,16 @@ import java.io.IOException;
 public class ResourceServlet extends HttpServlet {
 
     private Runtime runtime;
+    private Providers providers;
 
     public ResourceServlet(Runtime runtime) {
         this.runtime = runtime;
+        this.providers = runtime.getProviders();
     }
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         ResourceRouter router = runtime.getResourceRouter();
-        Providers providers = runtime.getProviders();
 
         OutboundResponse response;
         try {
@@ -45,6 +46,11 @@ public class ResourceServlet extends HttpServlet {
         }
 
 
+        respond(resp, response);
+
+    }
+
+    private void respond(HttpServletResponse resp, OutboundResponse response) throws IOException {
         resp.setStatus(response.getStatus());
         MultivaluedMap<String, Object> headers = response.getHeaders();
         for (String name : headers.keySet()) {
@@ -61,6 +67,5 @@ public class ResourceServlet extends HttpServlet {
             writer.writeTo(entity.getEntity(), entity.getRawType(), entity.getType(),
                     response.getAnnotations(), response.getMediaType(), response.getHeaders(), resp.getOutputStream());
         }
-
     }
 }
