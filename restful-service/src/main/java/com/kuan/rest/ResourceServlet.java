@@ -13,6 +13,7 @@ import jakarta.ws.rs.ext.Providers;
 import jakarta.ws.rs.ext.RuntimeDelegate;
 
 import java.io.IOException;
+import java.util.function.Supplier;
 
 public class ResourceServlet extends HttpServlet {
 
@@ -28,25 +29,25 @@ public class ResourceServlet extends HttpServlet {
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         ResourceRouter router = runtime.getResourceRouter();
 
-        try {
-            respond(resp, router.dispatch(req, runtime.createResourceContext(req, resp)));
-        } catch (WebApplicationException exception) {
-            respond(resp, (OutboundResponse) exception.getResponse());
-        } catch (Throwable throwable) {
-            try {
-                ExceptionMapper exceptionMapper = providers.getExceptionMapper(throwable.getClass());
-                respond(resp, (OutboundResponse) exceptionMapper.toResponse(throwable));
-            } catch (WebApplicationException exception) {
-                respond(resp, (OutboundResponse) exception.getResponse());
-            }catch (Throwable throwable1) {
-                ExceptionMapper exceptionMapper = providers.getExceptionMapper(throwable1.getClass());
-                respond(resp, (OutboundResponse) exceptionMapper.toResponse(throwable1));
-            }
-        }
-
-
-
+        respond_(resp, () -> router.dispatch(req, runtime.createResourceContext(req, resp)));
     }
+
+
+    private void respond_(HttpServletResponse resp, Supplier<OutboundResponse> supplier) {
+        try {
+            respond(resp, supplier.get());
+        } catch (WebApplicationException exception) {
+            respond_(resp, () -> (OutboundResponse) exception.getResponse());
+        } catch (Throwable throwable) {
+            respond_(resp, () -> from(throwable));
+        }
+    }
+
+    private OutboundResponse from(Throwable throwable) {
+        ExceptionMapper exceptionMapper = providers.getExceptionMapper(throwable.getClass());
+        return (OutboundResponse) exceptionMapper.toResponse(throwable);
+    }
+
 
     private void respond(HttpServletResponse resp, OutboundResponse response) throws IOException {
         resp.setStatus(response.getStatus());
