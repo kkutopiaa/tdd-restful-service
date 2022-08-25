@@ -134,6 +134,18 @@ public class ResourceServletTest extends ServletTest {
         assertEquals("", httpResponse.body());
     }
 
+    @Test
+    public void should_use_response_from_web_application_exception_thrown_by_exception_mapper() throws Exception {
+        when(router.dispatch(any(), eq(resourceContext))).thenThrow(RuntimeException.class);
+        when(providers.getExceptionMapper(eq(RuntimeException.class)))
+                .thenReturn(exception -> {
+                    throw new WebApplicationException(response.status(Response.Status.FORBIDDEN).build());
+                });
+
+        HttpResponse<String> httpResponse = get("/test");
+
+        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
+    }
 
     class OutboundResponseBuilder {
         Response.Status status = Response.Status.OK;

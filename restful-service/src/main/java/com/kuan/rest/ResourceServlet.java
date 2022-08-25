@@ -33,8 +33,12 @@ public class ResourceServlet extends HttpServlet {
         } catch (WebApplicationException exception) {
             response = (OutboundResponse) exception.getResponse();
         } catch (Throwable throwable) {
-            ExceptionMapper exceptionMapper = providers.getExceptionMapper(throwable.getClass());
-            response = (OutboundResponse) exceptionMapper.toResponse(throwable);
+            try {
+                ExceptionMapper exceptionMapper = providers.getExceptionMapper(throwable.getClass());
+                response = (OutboundResponse) exceptionMapper.toResponse(throwable);
+            } catch (WebApplicationException exception) {
+                response = (OutboundResponse) exception.getResponse();
+            }
         }
 
 
