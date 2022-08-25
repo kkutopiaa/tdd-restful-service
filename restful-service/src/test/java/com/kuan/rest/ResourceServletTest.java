@@ -147,6 +147,25 @@ public class ResourceServletTest extends ServletTest {
         assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
     }
 
+    @Test
+    public void should_map_exception_thrown_by_exception_mapper() throws Exception {
+        when(router.dispatch(any(), eq(resourceContext))).thenThrow(RuntimeException.class);
+        when(providers.getExceptionMapper(eq(RuntimeException.class)))
+                .thenReturn(exception -> {
+                    throw new IllegalArgumentException();
+                });
+        when(providers.getExceptionMapper(eq(IllegalArgumentException.class)))
+                .thenReturn(exception -> response.status(Response.Status.FORBIDDEN).build());
+
+
+        HttpResponse<String> httpResponse = get("/test");
+
+        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
+    }
+
+
+
+
     class OutboundResponseBuilder {
         Response.Status status = Response.Status.OK;
         MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
