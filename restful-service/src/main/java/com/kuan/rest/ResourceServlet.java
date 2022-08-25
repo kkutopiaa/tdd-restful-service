@@ -28,25 +28,23 @@ public class ResourceServlet extends HttpServlet {
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         ResourceRouter router = runtime.getResourceRouter();
 
-        OutboundResponse response;
         try {
-            response = router.dispatch(req, runtime.createResourceContext(req, resp));
+            respond(resp, router.dispatch(req, runtime.createResourceContext(req, resp)));
         } catch (WebApplicationException exception) {
-            response = (OutboundResponse) exception.getResponse();
+            respond(resp, (OutboundResponse) exception.getResponse());
         } catch (Throwable throwable) {
             try {
                 ExceptionMapper exceptionMapper = providers.getExceptionMapper(throwable.getClass());
-                response = (OutboundResponse) exceptionMapper.toResponse(throwable);
+                respond(resp, (OutboundResponse) exceptionMapper.toResponse(throwable));
             } catch (WebApplicationException exception) {
-                response = (OutboundResponse) exception.getResponse();
+                respond(resp, (OutboundResponse) exception.getResponse());
             }catch (Throwable throwable1) {
                 ExceptionMapper exceptionMapper = providers.getExceptionMapper(throwable1.getClass());
-                response = (OutboundResponse) exceptionMapper.toResponse(throwable1);
+                respond(resp, (OutboundResponse) exceptionMapper.toResponse(throwable1));
             }
         }
 
 
-        respond(resp, response);
 
     }
 
