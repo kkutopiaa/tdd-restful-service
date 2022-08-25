@@ -124,6 +124,17 @@ public class ResourceServletTest extends ServletTest {
     }
 
 
+    @Test
+    public void should_not_call_message_body_writer_if_entity_is_null() throws Exception {
+        response.entity(null, new Annotation[0]).returnFrom(router);
+
+        HttpResponse<String> httpResponse = get("/test");
+
+        assertEquals(Response.Status.OK.getStatusCode(), httpResponse.statusCode());
+        assertEquals("", httpResponse.body());
+    }
+
+
     class OutboundResponseBuilder {
         Response.Status status = Response.Status.OK;
         MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
