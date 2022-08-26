@@ -11,6 +11,7 @@ import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
@@ -164,12 +165,41 @@ public class ResourceServletTest extends ServletTest {
     }
 
 
+    @Test
+    public void should_use_response_from_web_application_exception_thrown_by_message_body_writer() throws Exception {
+        WebApplicationException exception = new WebApplicationException(response.status(Response.Status.FORBIDDEN).build());
+
+        response.entity(new GenericEntity<>(1.1, Double.class), new Annotation[0]).returnFrom(router);
+
+        when(providers.getMessageBodyWriter(eq(Double.class), eq(Double.class),
+                eq(new Annotation[0]), eq(MediaType.TEXT_PLAIN_TYPE)))
+                .thenReturn(new MessageBodyWriter<Double>() {
+                    @Override
+                    public boolean isWriteable(Class<?> type, Type genericType,
+                                               Annotation[] annotations, MediaType mediaType) {
+                        return false;
+                    }
+
+                    @Override
+                    public void writeTo(Double aDouble, Class<?> type, Type genericType, Annotation[] annotations,
+                                        MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
+                                        OutputStream entityStream) throws IOException, WebApplicationException {
+                        throw exception;
+                    }
+                });
+
+        HttpResponse<String> httpResponse = get("/test");
+
+        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
+    }
+
+
 
 
     class OutboundResponseBuilder {
         Response.Status status = Response.Status.OK;
         MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
-        GenericEntity<String> entity = new GenericEntity<>("entity", String.class);
+        GenericEntity<Object> entity = new GenericEntity<>("entity", String.class);
         Annotation[] annotations = new Annotation[0];
         MediaType mediaType = MediaType.TEXT_PLAIN_TYPE;
 
@@ -183,7 +213,7 @@ public class ResourceServletTest extends ServletTest {
             return this;
         }
 
-        public OutboundResponseBuilder entity(GenericEntity<String> entity, Annotation[] annotations) {
+        public OutboundResponseBuilder entity(GenericEntity<Object> entity, Annotation[] annotations) {
             this.entity = entity;
             this.annotations = annotations;
             return this;
