@@ -166,7 +166,7 @@ public class ResourceServletTest extends ServletTest {
     public void should_use_response_from_web_application_exception_thrown_by_message_body_writer() throws Exception {
         RuntimeException exception =
                 new WebApplicationException(response().status(Response.Status.FORBIDDEN).build());
-        messageBodyWriterWriteToThrows(exception);
+        message_BodyWriterWriteTo(exception);
 
         HttpResponse<String> httpResponse = get("/test");
 
@@ -178,7 +178,7 @@ public class ResourceServletTest extends ServletTest {
             throws Exception {
         WebApplicationException exception =
                 new WebApplicationException(response().status(Response.Status.FORBIDDEN).build());
-        providersGetMessageBodyWriterThrows(exception);
+        providers_GetMessageBodyWriter(exception);
 
         HttpResponse<String> httpResponse = get("/test");
 
@@ -187,14 +187,12 @@ public class ResourceServletTest extends ServletTest {
 
     @Test
     public void should_map_exception_thrown_by_message_body_writer() throws Exception {
-        Consumer<RuntimeException> caller = this::messageBodyWriterWriteToThrows;
-        otherExceptionThrownFrom(caller);
+        otherExceptionThrownFrom(this::message_BodyWriterWriteTo);
     }
 
     @Test
     public void should_map_exception_thrown_by_providers_when_find_message_body_writer() throws Exception {
-        Consumer<RuntimeException> caller = this::providersGetMessageBodyWriterThrows;
-        otherExceptionThrownFrom(caller);
+        otherExceptionThrownFrom(this::providers_GetMessageBodyWriter);
     }
 
     private void otherExceptionThrownFrom(Consumer<RuntimeException> caller) throws Exception {
@@ -209,7 +207,7 @@ public class ResourceServletTest extends ServletTest {
         assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
     }
 
-    private void messageBodyWriterWriteToThrows(RuntimeException exception) {
+    private void message_BodyWriterWriteTo(RuntimeException exception) {
         response().entity(new GenericEntity<>(1.1, Double.class), new Annotation[0]).returnFrom(router);
         when(providers.getMessageBodyWriter(eq(Double.class), eq(Double.class),
                 eq(new Annotation[0]), eq(MediaType.TEXT_PLAIN_TYPE)))
@@ -229,7 +227,7 @@ public class ResourceServletTest extends ServletTest {
                 });
     }
 
-    private void providersGetMessageBodyWriterThrows(RuntimeException exception) {
+    private void providers_GetMessageBodyWriter(RuntimeException exception) {
         response().entity(new GenericEntity<>(1.1, Double.class), new Annotation[0]).returnFrom(router);
         when(providers.getMessageBodyWriter(eq(Double.class), eq(Double.class),
                 eq(new Annotation[0]), eq(MediaType.TEXT_PLAIN_TYPE)))
