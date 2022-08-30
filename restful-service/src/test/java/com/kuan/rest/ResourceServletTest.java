@@ -237,6 +237,21 @@ public class ResourceServletTest extends ServletTest {
         assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
     }
 
+    @Test
+    public void should_map_exception_thrown_by_providers_when_find_message_body_writer() throws Exception {
+        response().entity(new GenericEntity<>(1.1, Double.class), new Annotation[0]).returnFrom(router);
+        when(providers.getMessageBodyWriter(eq(Double.class), eq(Double.class),
+                eq(new Annotation[0]), eq(MediaType.TEXT_PLAIN_TYPE)))
+                .thenThrow(IllegalArgumentException.class);
+
+        when(providers.getExceptionMapper(eq(IllegalArgumentException.class)))
+                .thenReturn(e -> response().status(Response.Status.FORBIDDEN).build());
+
+        HttpResponse<String> httpResponse = get("/test");
+
+        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
+    }
+
 
     private OutboundResponseBuilder response() {
         return new OutboundResponseBuilder();
