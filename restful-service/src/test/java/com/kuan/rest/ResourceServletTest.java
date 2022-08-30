@@ -188,22 +188,16 @@ public class ResourceServletTest extends ServletTest {
     @Test
     public void should_map_exception_thrown_by_message_body_writer() throws Exception {
         Consumer<RuntimeException> caller = this::messageBodyWriterWriteToThrows;
-
-        RuntimeException exception = new IllegalArgumentException();
-        caller.accept(exception);
-
-        when(providers.getExceptionMapper(eq(IllegalArgumentException.class)))
-                .thenReturn(e -> response().status(Response.Status.FORBIDDEN).build());
-
-        HttpResponse<String> httpResponse = get("/test");
-
-        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
+        otherExceptionThrownFrom(caller);
     }
 
     @Test
     public void should_map_exception_thrown_by_providers_when_find_message_body_writer() throws Exception {
         Consumer<RuntimeException> caller = this::providersGetMessageBodyWriterThrows;
+        otherExceptionThrownFrom(caller);
+    }
 
+    private void otherExceptionThrownFrom(Consumer<RuntimeException> caller) throws Exception {
         RuntimeException exception = new IllegalArgumentException();
         caller.accept(exception);
 
