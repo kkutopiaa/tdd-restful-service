@@ -4,14 +4,12 @@ import jakarta.servlet.Servlet;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.*;
-import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.MessageBodyWriter;
 import jakarta.ws.rs.ext.Providers;
 import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
@@ -226,11 +224,7 @@ public class ResourceServletTest extends ServletTest {
             throws Exception {
         WebApplicationException exception =
                 new WebApplicationException(response().status(Response.Status.FORBIDDEN).build());
-        response().entity(new GenericEntity<>(1.1, Double.class), new Annotation[0]).returnFrom(router);
-
-        when(providers.getMessageBodyWriter(eq(Double.class), eq(Double.class),
-                eq(new Annotation[0]), eq(MediaType.TEXT_PLAIN_TYPE)))
-                .thenThrow(exception);
+        providersGetMessageBodyWriterThrows(exception);
 
         HttpResponse<String> httpResponse = get("/test");
 
@@ -239,10 +233,8 @@ public class ResourceServletTest extends ServletTest {
 
     @Test
     public void should_map_exception_thrown_by_providers_when_find_message_body_writer() throws Exception {
-        response().entity(new GenericEntity<>(1.1, Double.class), new Annotation[0]).returnFrom(router);
-        when(providers.getMessageBodyWriter(eq(Double.class), eq(Double.class),
-                eq(new Annotation[0]), eq(MediaType.TEXT_PLAIN_TYPE)))
-                .thenThrow(IllegalArgumentException.class);
+        RuntimeException exception = new IllegalArgumentException();
+        providersGetMessageBodyWriterThrows(exception);
 
         when(providers.getExceptionMapper(eq(IllegalArgumentException.class)))
                 .thenReturn(e -> response().status(Response.Status.FORBIDDEN).build());
@@ -250,6 +242,13 @@ public class ResourceServletTest extends ServletTest {
         HttpResponse<String> httpResponse = get("/test");
 
         assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
+    }
+
+    private void providersGetMessageBodyWriterThrows(RuntimeException exception) {
+        response().entity(new GenericEntity<>(1.1, Double.class), new Annotation[0]).returnFrom(router);
+        when(providers.getMessageBodyWriter(eq(Double.class), eq(Double.class),
+                eq(new Annotation[0]), eq(MediaType.TEXT_PLAIN_TYPE)))
+                .thenThrow(exception);
     }
 
 
