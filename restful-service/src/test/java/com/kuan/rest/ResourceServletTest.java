@@ -164,25 +164,13 @@ public class ResourceServletTest extends ServletTest {
 
     @Test
     public void should_use_response_from_web_application_exception_thrown_by_message_body_writer() throws Exception {
-        RuntimeException exception =
-                new WebApplicationException(response().status(Response.Status.FORBIDDEN).build());
-        message_BodyWriterWriteTo(exception);
-
-        HttpResponse<String> httpResponse = get("/test");
-
-        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
+        webApplicationExceptionThrownFrom(this::message_BodyWriterWriteTo);
     }
 
     @Test
     public void should_use_response_from_web_application_exception_thrown_by_providers_when_find_message_body_writer()
             throws Exception {
-        WebApplicationException exception =
-                new WebApplicationException(response().status(Response.Status.FORBIDDEN).build());
-        providers_GetMessageBodyWriter(exception);
-
-        HttpResponse<String> httpResponse = get("/test");
-
-        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
+        webApplicationExceptionThrownFrom(this::providers_GetMessageBodyWriter);
     }
 
     @Test
@@ -193,6 +181,16 @@ public class ResourceServletTest extends ServletTest {
     @Test
     public void should_map_exception_thrown_by_providers_when_find_message_body_writer() throws Exception {
         otherExceptionThrownFrom(this::providers_GetMessageBodyWriter);
+    }
+
+    private void webApplicationExceptionThrownFrom(Consumer<RuntimeException> caller) throws Exception {
+        WebApplicationException exception =
+                new WebApplicationException(response().status(Response.Status.FORBIDDEN).build());
+        caller.accept(exception);
+
+        HttpResponse<String> httpResponse = get("/test");
+
+        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
     }
 
     private void otherExceptionThrownFrom(Consumer<RuntimeException> caller) throws Exception {
