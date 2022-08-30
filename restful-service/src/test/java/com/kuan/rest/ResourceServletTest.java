@@ -166,7 +166,8 @@ public class ResourceServletTest extends ServletTest {
 
     @Test
     public void should_use_response_from_web_application_exception_thrown_by_message_body_writer() throws Exception {
-        WebApplicationException exception = new WebApplicationException(response().status(Response.Status.FORBIDDEN).build());
+        WebApplicationException exception =
+                new WebApplicationException(response().status(Response.Status.FORBIDDEN).build());
 
         response().entity(new GenericEntity<>(1.1, Double.class), new Annotation[0]).returnFrom(router);
 
@@ -219,6 +220,23 @@ public class ResourceServletTest extends ServletTest {
         assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
 
     }
+
+    @Test
+    public void should_use_response_from_web_application_exception_thrown_by_providers_when_find_message_body_writer()
+            throws Exception {
+        WebApplicationException exception =
+                new WebApplicationException(response().status(Response.Status.FORBIDDEN).build());
+        response().entity(new GenericEntity<>(1.1, Double.class), new Annotation[0]).returnFrom(router);
+
+        when(providers.getMessageBodyWriter(eq(Double.class), eq(Double.class),
+                eq(new Annotation[0]), eq(MediaType.TEXT_PLAIN_TYPE)))
+                .thenThrow(exception);
+
+        HttpResponse<String> httpResponse = get("/test");
+
+        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
+    }
+
 
     private OutboundResponseBuilder response() {
         return new OutboundResponseBuilder();
