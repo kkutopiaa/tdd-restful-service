@@ -8,13 +8,18 @@ import jakarta.ws.rs.ext.MessageBodyWriter;
 import jakarta.ws.rs.ext.Providers;
 import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -183,7 +188,27 @@ public class ResourceServletTest extends ServletTest {
         otherExceptionThrownFrom(this::providers_GetMessageBodyWriter);
     }
 
-    private void webApplicationExceptionThrownFrom(Consumer<RuntimeException> caller) throws Exception {
+
+    @TestFactory
+    public List<DynamicTest> should_respond_based_on_exception_thrown() {
+        List<DynamicTest> tests = new ArrayList<>();
+
+        List<Consumer<RuntimeException>> callers =
+                List.of(this::providers_GetMessageBodyWriter, this::message_BodyWriterWriteTo);
+        List<Consumer<Consumer<RuntimeException>>> exceptions =
+                List.of(this::otherExceptionThrownFrom, this::webApplicationExceptionThrownFrom);
+
+        for (Consumer<RuntimeException> caller : callers) {
+            for (Consumer<Consumer<RuntimeException>> exceptionThrownFrom : exceptions) {
+                tests.add(DynamicTest.dynamicTest(new Date().toString(), () -> exceptionThrownFrom.accept(caller)));
+            }
+        }
+
+        return tests;
+    }
+
+
+    private void webApplicationExceptionThrownFrom(Consumer<RuntimeException> caller) {
         WebApplicationException exception =
                 new WebApplicationException(response().status(Response.Status.FORBIDDEN).build());
         caller.accept(exception);
@@ -193,7 +218,7 @@ public class ResourceServletTest extends ServletTest {
         assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
     }
 
-    private void otherExceptionThrownFrom(Consumer<RuntimeException> caller) throws Exception {
+    private void otherExceptionThrownFrom(Consumer<RuntimeException> caller) {
         RuntimeException exception = new IllegalArgumentException();
         caller.accept(exception);
 

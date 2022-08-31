@@ -47,12 +47,16 @@ public abstract class ServletTest {
         return new URL(new URL(base), path).toURI();
     }
 
-    public HttpResponse<String> get(String path) throws Exception {
-        HttpClient client = HttpClient.newHttpClient();
-        URI uri = path(path);
-        System.out.println("in get , uri : " + uri);
-        HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
-        return client.send(request, HttpResponse.BodyHandlers.ofString());
+    public HttpResponse<String> get(String path)  {
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+            URI uri = path(path);
+            System.out.println("in get , uri : " + uri);
+            HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+            return client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
