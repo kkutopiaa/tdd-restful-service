@@ -15,12 +15,13 @@ import org.junit.jupiter.api.TestFactory;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -69,7 +70,7 @@ public class ResourceServletTest extends ServletTest {
     }
 
     @Test
-    public void should_use_status_from_response() throws Exception {
+    public void should_use_status_from_response() {
         response().status(Response.Status.NOT_MODIFIED).returnFrom(router);
 
         HttpResponse<String> httpResponse = get("/test");
@@ -79,7 +80,7 @@ public class ResourceServletTest extends ServletTest {
 
 
     @Test
-    public void should_use_http_headers_from_response() throws Exception {
+    public void should_use_http_headers_from_response() {
         response().headers(HttpHeaders.SET_COOKIE, new NewCookie.Builder("SESSION_ID").value("session").build(),
                         new NewCookie.Builder("USER_ID").value("user").build())
                 .returnFrom(router);
@@ -91,7 +92,7 @@ public class ResourceServletTest extends ServletTest {
     }
 
     @Test
-    public void should_write_entity_to_http_response_using_message_body_writer() throws Exception {
+    public void should_write_entity_to_http_response_using_message_body_writer() {
         response().entity(new GenericEntity<>("entity", String.class), new Annotation[0])
                 .returnFrom(router);
 
@@ -102,7 +103,7 @@ public class ResourceServletTest extends ServletTest {
 
 
     @Test
-    public void should_use_response_from_web_application_exception() throws Exception {
+    public void should_use_response_from_web_application_exception() {
         response().status(Response.Status.FORBIDDEN)
                 .headers(HttpHeaders.SET_COOKIE, new NewCookie.Builder("SESSION_ID").value("session").build())
                 .entity(new GenericEntity<>("error", String.class), new Annotation[0])
@@ -117,7 +118,7 @@ public class ResourceServletTest extends ServletTest {
     }
 
     @Test
-    public void should_build_response_by_exception_mapper_if_throw_other_exception() throws Exception {
+    public void should_build_response_by_exception_mapper_if_throw_other_exception() {
         when(router.dispatch(any(), eq(resourceContext))).thenThrow(RuntimeException.class);
         when(providers.getExceptionMapper(eq(RuntimeException.class)))
                 .thenReturn(exception -> response().status(Response.Status.FORBIDDEN).build());
@@ -129,7 +130,7 @@ public class ResourceServletTest extends ServletTest {
 
 
     @Test
-    public void should_not_call_message_body_writer_if_entity_is_null() throws Exception {
+    public void should_not_call_message_body_writer_if_entity_is_null() {
         response().entity(null, new Annotation[0]).returnFrom(router);
 
         HttpResponse<String> httpResponse = get("/test");
@@ -139,7 +140,7 @@ public class ResourceServletTest extends ServletTest {
     }
 
     @Test
-    public void should_use_response_from_web_application_exception_thrown_by_exception_mapper() throws Exception {
+    public void should_use_response_from_web_application_exception_thrown_by_exception_mapper() {
         when(router.dispatch(any(), eq(resourceContext))).thenThrow(RuntimeException.class);
         when(providers.getExceptionMapper(eq(RuntimeException.class)))
                 .thenReturn(exception -> {
@@ -152,7 +153,7 @@ public class ResourceServletTest extends ServletTest {
     }
 
     @Test
-    public void should_map_exception_thrown_by_exception_mapper() throws Exception {
+    public void should_map_exception_thrown_by_exception_mapper() {
         when(router.dispatch(any(), eq(resourceContext))).thenThrow(RuntimeException.class);
         when(providers.getExceptionMapper(eq(RuntimeException.class)))
                 .thenReturn(exception -> {
@@ -171,9 +172,7 @@ public class ResourceServletTest extends ServletTest {
     public List<DynamicTest> should_respond_based_on_exception_thrown() {
         List<DynamicTest> tests = new ArrayList<>();
 
-        Map<String, Consumer<RuntimeException>> callers =
-                Map.of("Providers.getMessageBodyWriter", this::providers_GetMessageBodyWriter,
-                        "MessageBodyWriter.writeTo", this::message_BodyWriterWriteTo);
+        Map<String, Consumer<RuntimeException>> callers = getCallers();
         Map<String, Consumer<Consumer<RuntimeException>>> exceptions =
                 Map.of("Other Exception", this::otherExceptionThrownFrom,
                         "WebApplicationException", this::webApplicationExceptionThrownFrom);
@@ -211,6 +210,12 @@ public class ResourceServletTest extends ServletTest {
         assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
     }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface ExceptionThrownFrom {
+
+    }
+
+    @ExceptionThrownFrom
     private void message_BodyWriterWriteTo(RuntimeException exception) {
         response().entity(new GenericEntity<>(1.1, Double.class), new Annotation[0]).returnFrom(router);
         when(providers.getMessageBodyWriter(eq(Double.class), eq(Double.class),
@@ -231,6 +236,7 @@ public class ResourceServletTest extends ServletTest {
                 });
     }
 
+    @ExceptionThrownFrom
     private void providers_GetMessageBodyWriter(RuntimeException exception) {
         response().entity(new GenericEntity<>(1.1, Double.class), new Annotation[0]).returnFrom(router);
         when(providers.getMessageBodyWriter(eq(Double.class), eq(Double.class),
@@ -238,6 +244,25 @@ public class ResourceServletTest extends ServletTest {
                 .thenThrow(exception);
     }
 
+    private Map<String, Consumer<RuntimeException>> getCallers() {
+        Map<String, Consumer<RuntimeException>> callers = new HashMap<>();
+
+        for (Method method : Arrays.stream(this.getClass().getDeclaredMethods())
+                .filter(m -> m.isAnnotationPresent(ExceptionThrownFrom.class)).toList()) {
+            String name = method.getName();
+            String callerName = name.substring(0, 1).toUpperCase()
+                    + name.substring(1).replace('_', '.');
+            callers.put(callerName, e -> {
+                try {
+                    method.invoke(this, e);
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
+        }
+
+        return callers;
+    }
 
     private OutboundResponseBuilder response() {
         return new OutboundResponseBuilder();
