@@ -141,11 +141,9 @@ public class ResourceServletTest extends ServletTest {
 
     @Test
     public void should_use_response_from_web_application_exception_thrown_by_exception_mapper() {
-        when(router.dispatch(any(), eq(resourceContext))).thenThrow(RuntimeException.class);
-        when(providers.getExceptionMapper(eq(RuntimeException.class)))
-                .thenReturn(exception -> {
-                    throw new WebApplicationException(response().status(Response.Status.FORBIDDEN).build());
-                });
+        RuntimeException exception = new WebApplicationException(response().status(Response.Status.FORBIDDEN).build());
+
+        providers_getExceptionMapper(exception);
 
         HttpResponse<String> httpResponse = get("/test");
 
@@ -154,18 +152,25 @@ public class ResourceServletTest extends ServletTest {
 
     @Test
     public void should_map_exception_thrown_by_exception_mapper() {
-        when(router.dispatch(any(), eq(resourceContext))).thenThrow(RuntimeException.class);
-        when(providers.getExceptionMapper(eq(RuntimeException.class)))
-                .thenReturn(exception -> {
-                    throw new IllegalArgumentException();
-                });
+        RuntimeException exception = new IllegalArgumentException();
+
+        providers_getExceptionMapper(exception);
+
         when(providers.getExceptionMapper(eq(IllegalArgumentException.class)))
-                .thenReturn(exception -> response().status(Response.Status.FORBIDDEN).build());
+                .thenReturn(e -> response().status(Response.Status.FORBIDDEN).build());
 
 
         HttpResponse<String> httpResponse = get("/test");
 
         assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
+    }
+
+    private void providers_getExceptionMapper(RuntimeException exception) {
+        when(router.dispatch(any(), eq(resourceContext))).thenThrow(RuntimeException.class);
+        when(providers.getExceptionMapper(eq(RuntimeException.class)))
+                .thenReturn(e -> {
+                    throw exception;
+                });
     }
 
     @TestFactory
