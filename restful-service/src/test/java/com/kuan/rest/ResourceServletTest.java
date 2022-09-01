@@ -139,39 +139,6 @@ public class ResourceServletTest extends ServletTest {
         assertEquals("", httpResponse.body());
     }
 
-    @Test
-    public void should_use_response_from_web_application_exception_thrown_by_exception_mapper() {
-        RuntimeException exception = new WebApplicationException(response().status(Response.Status.FORBIDDEN).build());
-
-        providers_getExceptionMapper(exception);
-
-        HttpResponse<String> httpResponse = get("/test");
-
-        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
-    }
-
-    @Test
-    public void should_map_exception_thrown_by_exception_mapper() {
-        RuntimeException exception = new IllegalArgumentException();
-
-        providers_getExceptionMapper(exception);
-
-        when(providers.getExceptionMapper(eq(IllegalArgumentException.class)))
-                .thenReturn(e -> response().status(Response.Status.FORBIDDEN).build());
-
-
-        HttpResponse<String> httpResponse = get("/test");
-
-        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
-    }
-
-    private void providers_getExceptionMapper(RuntimeException exception) {
-        when(router.dispatch(any(), eq(resourceContext))).thenThrow(RuntimeException.class);
-        when(providers.getExceptionMapper(eq(RuntimeException.class)))
-                .thenReturn(e -> {
-                    throw exception;
-                });
-    }
 
     @TestFactory
     public List<DynamicTest> should_respond_based_on_exception_thrown() {
@@ -247,6 +214,15 @@ public class ResourceServletTest extends ServletTest {
         when(providers.getMessageBodyWriter(eq(Double.class), eq(Double.class),
                 eq(new Annotation[0]), eq(MediaType.TEXT_PLAIN_TYPE)))
                 .thenThrow(exception);
+    }
+
+    @ExceptionThrownFrom
+    private void providers_getExceptionMapper(RuntimeException exception) {
+        when(router.dispatch(any(), eq(resourceContext))).thenThrow(RuntimeException.class);
+        when(providers.getExceptionMapper(eq(RuntimeException.class)))
+                .thenReturn(e -> {
+                    throw exception;
+                });
     }
 
     private Map<String, Consumer<RuntimeException>> getCallers() {
