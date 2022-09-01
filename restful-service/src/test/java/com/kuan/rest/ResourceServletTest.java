@@ -20,6 +20,7 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -193,14 +194,17 @@ public class ResourceServletTest extends ServletTest {
     public List<DynamicTest> should_respond_based_on_exception_thrown() {
         List<DynamicTest> tests = new ArrayList<>();
 
-        List<Consumer<RuntimeException>> callers =
-                List.of(this::providers_GetMessageBodyWriter, this::message_BodyWriterWriteTo);
-        List<Consumer<Consumer<RuntimeException>>> exceptions =
-                List.of(this::otherExceptionThrownFrom, this::webApplicationExceptionThrownFrom);
+        Map<String, Consumer<RuntimeException>> callers =
+                Map.of("Providers.getMessageBodyWriter", this::providers_GetMessageBodyWriter,
+                        "MessageBodyWriter.writeTo", this::message_BodyWriterWriteTo);
+        Map<String, Consumer<Consumer<RuntimeException>>> exceptions =
+                Map.of("Other Exception", this::otherExceptionThrownFrom,
+                        "WebApplicationException", this::webApplicationExceptionThrownFrom);
 
-        for (Consumer<RuntimeException> caller : callers) {
-            for (Consumer<Consumer<RuntimeException>> exceptionThrownFrom : exceptions) {
-                tests.add(DynamicTest.dynamicTest(new Date().toString(), () -> exceptionThrownFrom.accept(caller)));
+        for (Map.Entry<String, Consumer<RuntimeException>> caller : callers.entrySet()) {
+            for (Map.Entry<String, Consumer<Consumer<RuntimeException>>> exceptionThrownFrom : exceptions.entrySet()) {
+                tests.add(DynamicTest.dynamicTest(caller.getKey() + " throws " + exceptionThrownFrom.getKey(),
+                        () -> exceptionThrownFrom.getValue().accept(caller.getValue())));
             }
         }
 
