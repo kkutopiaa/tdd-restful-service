@@ -167,29 +167,6 @@ public class ResourceServletTest extends ServletTest {
         assertEquals(Response.Status.FORBIDDEN.getStatusCode(), httpResponse.statusCode());
     }
 
-
-    @Test
-    public void should_use_response_from_web_application_exception_thrown_by_message_body_writer() throws Exception {
-        webApplicationExceptionThrownFrom(this::message_BodyWriterWriteTo);
-    }
-
-    @Test
-    public void should_use_response_from_web_application_exception_thrown_by_providers_when_find_message_body_writer()
-            throws Exception {
-        webApplicationExceptionThrownFrom(this::providers_GetMessageBodyWriter);
-    }
-
-    @Test
-    public void should_map_exception_thrown_by_message_body_writer() throws Exception {
-        otherExceptionThrownFrom(this::message_BodyWriterWriteTo);
-    }
-
-    @Test
-    public void should_map_exception_thrown_by_providers_when_find_message_body_writer() throws Exception {
-        otherExceptionThrownFrom(this::providers_GetMessageBodyWriter);
-    }
-
-
     @TestFactory
     public List<DynamicTest> should_respond_based_on_exception_thrown() {
         List<DynamicTest> tests = new ArrayList<>();
