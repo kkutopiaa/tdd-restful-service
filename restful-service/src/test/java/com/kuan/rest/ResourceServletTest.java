@@ -17,7 +17,6 @@ import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.http.HttpResponse;
@@ -35,7 +34,7 @@ public class ResourceServletTest extends ServletTest {
     private ResourceRouter router;
     private ResourceContext resourceContext;
     private Providers providers;
-
+    private RuntimeDelegate delegate;
 
     @Override
     protected Servlet getServlet() {
@@ -53,7 +52,7 @@ public class ResourceServletTest extends ServletTest {
 
     @BeforeEach
     public void before() {
-        RuntimeDelegate delegate = mock(RuntimeDelegate.class);
+        delegate = mock(RuntimeDelegate.class);
         RuntimeDelegate.setInstance(delegate);
         when(delegate.createHeaderDelegate(eq(NewCookie.class)))
                 .thenReturn(new RuntimeDelegate.HeaderDelegate<>() {
@@ -228,6 +227,12 @@ public class ResourceServletTest extends ServletTest {
     @ExceptionThrownFrom
     private void resourceRouter_dispatch(RuntimeException exception) {
         when(router.dispatch(any(), eq(resourceContext))).thenThrow(exception);
+    }
+
+    @ExceptionThrownFrom
+    private void runtimeDelegate_createHeaderDelegate(RuntimeException exception) {
+        response().headers(HttpHeaders.CONTENT_TYPE,MediaType.TEXT_PLAIN_TYPE).returnFrom(router);
+        when(delegate.createHeaderDelegate(eq(MediaType.class))).thenThrow(exception);
     }
 
     private Map<String, Consumer<RuntimeException>> getCallers() {
