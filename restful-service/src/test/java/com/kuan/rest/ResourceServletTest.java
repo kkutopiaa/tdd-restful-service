@@ -252,6 +252,12 @@ public class ResourceServletTest extends ServletTest {
                 });
     }
 
+    @ExceptionThrownFrom
+    private void exceptionMapper_toResponse(RuntimeException exception) {
+        when(router.dispatch(any(), eq(resourceContext))).thenThrow(RuntimeException.class);
+        when(providers.getExceptionMapper(eq(RuntimeException.class))).thenThrow(exception);
+    }
+
     private Map<String, Consumer<RuntimeException>> getCallers() {
         Map<String, Consumer<RuntimeException>> callers = new HashMap<>();
 
