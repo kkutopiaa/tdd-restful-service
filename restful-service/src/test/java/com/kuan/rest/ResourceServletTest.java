@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.function.Executable;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -138,6 +139,28 @@ public class ResourceServletTest extends ServletTest {
         assertEquals("", httpResponse.body());
     }
 
+    @TestFactory
+    public List<DynamicTest> should_respond_when_extension_missing() {
+        List<DynamicTest> tests = new ArrayList<>();
+
+        Map<String, Executable> extensions = Map.of(
+                "MessageBodyWriter", () -> response()
+                        .entity(new GenericEntity<>(1, Integer.class), new Annotation[0]).returnFrom(router),
+                "HeaderDelegate", () -> response().headers(HttpHeaders.DATE, new Date()).returnFrom(router),
+                "ExceptionMapper", () -> when(router.dispatch(any(), eq(resourceContext)))
+                        .thenThrow(IllegalStateException.class));
+        for (String name : extensions.keySet()) {
+            tests.add(DynamicTest.dynamicTest(name + " not found", () -> {
+                extensions.get(name).execute();
+                when(providers.getExceptionMapper(eq(NullPointerException.class)))
+                        .thenReturn(e -> response().status(Response.Status.INTERNAL_SERVER_ERROR).build());
+                HttpResponse<String> httpResponse = get("/test");
+                assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), httpResponse.statusCode());
+            }));
+        }
+
+        return tests;
+    }
 
     @TestFactory
     public List<DynamicTest> should_respond_based_on_exception_thrown() {
@@ -231,7 +254,7 @@ public class ResourceServletTest extends ServletTest {
 
     @ExceptionThrownFrom
     private void runtimeDelegate_createHeaderDelegate(RuntimeException exception) {
-        response().headers(HttpHeaders.CONTENT_TYPE,MediaType.TEXT_PLAIN_TYPE).returnFrom(router);
+        response().headers(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_TYPE).returnFrom(router);
         when(delegate.createHeaderDelegate(eq(MediaType.class))).thenThrow(exception);
     }
 
