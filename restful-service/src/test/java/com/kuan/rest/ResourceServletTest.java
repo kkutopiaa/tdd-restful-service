@@ -188,7 +188,7 @@ public class ResourceServletTest extends ServletTest {
     }
 
     @ExceptionThrownFrom
-    private void message_BodyWriterWriteTo(RuntimeException exception) {
+    private void messageBodyWriter_WriteTo(RuntimeException exception) {
         response().entity(new GenericEntity<>(1.1, Double.class), new Annotation[0]).returnFrom(router);
         when(providers.getMessageBodyWriter(eq(Double.class), eq(Double.class),
                 eq(new Annotation[0]), eq(MediaType.TEXT_PLAIN_TYPE)))
@@ -224,6 +224,7 @@ public class ResourceServletTest extends ServletTest {
                     throw exception;
                 });
     }
+
 
     private Map<String, Consumer<RuntimeException>> getCallers() {
         Map<String, Consumer<RuntimeException>> callers = new HashMap<>();
