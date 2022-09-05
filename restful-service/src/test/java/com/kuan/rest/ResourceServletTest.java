@@ -235,6 +235,23 @@ public class ResourceServletTest extends ServletTest {
         when(delegate.createHeaderDelegate(eq(MediaType.class))).thenThrow(exception);
     }
 
+    @ExceptionThrownFrom
+    private void headerDelegate_toString(RuntimeException exception) {
+        response().headers(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_TYPE).returnFrom(router);
+        when(delegate.createHeaderDelegate(eq(MediaType.class)))
+                .thenReturn(new RuntimeDelegate.HeaderDelegate<>() {
+                    @Override
+                    public MediaType fromString(String value) {
+                        return null;
+                    }
+
+                    @Override
+                    public String toString(MediaType value) {
+                        throw exception;
+                    }
+                });
+    }
+
     private Map<String, Consumer<RuntimeException>> getCallers() {
         Map<String, Consumer<RuntimeException>> callers = new HashMap<>();
 
