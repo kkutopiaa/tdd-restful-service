@@ -33,8 +33,9 @@ public class ResourceDispatcherTest {
         private Map<Pattern, Class<?>> routerTable = new HashMap<>();
 
         public Router(Class<Users> rootResource) {
-
-        }
+            Path path = rootResource.getAnnotation(Path.class);
+            routerTable.put(Pattern.compile(path.value() + "(/.*)?"), rootResource);
+       }
 
         @Override
         public OutboundResponse dispatch(HttpServletRequest request, ResourceContext resourceContext) {
