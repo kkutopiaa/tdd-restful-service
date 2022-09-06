@@ -83,3 +83,40 @@ spike： 并不是把所有细节都理解完，目的是花最小的成本，�
   - 为 Link 提供 HeaderDelegate
   - 为 NewCookie 提供 HeaderDelegate
   - 为 Date 提供 HeaderDelegate
+
+
+再驱动完了 ResourceServlet 组件的开发之后，需要把抽象层中其他使用到的组件，也加入到任务列表中：
+- RuntimeDelegate
+  - 为 MediaType 提供 HeaderDelegate
+  - 为 CacheControl 提供 HeaderDelegate
+  - 为 Cookie 提供 HeaderDelegates
+  - 为 EntityTag 提供 HeaderDelegate
+  - 为 Link 提供 HeaderDelegate
+  - 为 NewCookie 提供 HeaderDelegate
+  - 为 Date 提供 HeaderDelegate
+  - 提供 OutboundResponseBuilder
+- OutboundResponseBuilder
+  - 可按照不同的 Status 生成 Resposne
+- OutboundResponse
+- Resource Dispatcher
+  - 将 Reosurce Method 的返回值包装为 Response 对象
+- Providers
+  - 可获取 MessageBodyWriter
+  - 可获取 ExceptionMapper
+- Runtimes
+  - 可获取 ResoruceDispatcher
+  - 可获取 Providers
+- MessageBodyWriter
+- ExceptionMapper
+  - 需要提供默认的 ExceptionMapper
+
+接下来，对于确定怎么交互（调用栈）的部分，可以进入经典模式，拆解任务列表继续开发。
+但对于 Resource Dispatcher 的部分，具体怎么交互的仍然不确定，可通过 Spike 消除这种不确定性。
+
+对于 Resource Dispatcher 的部分，一个简单的架构构想如下：
+![](imgs/07.ResourceDispatch的架构构想1.jpg)
+1. 将所有的 RootResource 的 Path 转化为正则表达式的 Pattern；
+2. ResourceRouter 拿到 HttpServletRequest 之后，尝试与 Pattern 匹配；
+3. 匹配到的 RootResource 通过 Context 实例化；
+4. 调用实例化后的 RootResource，处理请求，过程中把中间信息存入 UriInfo；
+5. ResourceRouter 拿到结果后，转化为 Response 对象返回。
