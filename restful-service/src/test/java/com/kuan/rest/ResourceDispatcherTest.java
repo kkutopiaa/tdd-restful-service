@@ -7,12 +7,16 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.GenericEntity;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ResourceDispatcherTest {
 
@@ -20,6 +24,9 @@ public class ResourceDispatcherTest {
     public void spike() {
         HttpServletRequest request = mock(HttpServletRequest.class);
         ResourceContext context = mock(ResourceContext.class);
+
+        when(request.getServletPath()).thenReturn("/users");
+        when(context.getResource(eq(Users.class))).thenReturn(new Users());
 
         Router router = new Router(Users.class);
         OutboundResponse response = router.dispatch(request, context);
@@ -39,6 +46,21 @@ public class ResourceDispatcherTest {
 
         @Override
         public OutboundResponse dispatch(HttpServletRequest request, ResourceContext resourceContext) {
+            String path = request.getServletPath();
+            Pattern matched = routerTable.keySet().stream()
+                    .filter(pattern -> pattern.matcher(path).matches()).findFirst().get();
+            Class<?> resource = routerTable.get(matched);
+            Object object = resourceContext.getResource(resource);
+
+            Method method = Arrays.stream(resource.getMethods())
+                    .filter(m -> m.isAnnotationPresent(GET.class)).findFirst().get();
+
+            try {
+                Object result = method.invoke(object);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
             return null;
         }
     }
