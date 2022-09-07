@@ -233,6 +233,42 @@ public class ResourceDispatcherTest {
     }
 
 
+    static class ResourceClass implements Resource {
+
+        private Pattern pattern;
+        private String path;
+        private Class<?> resourceClass;
+
+        private Map<URITemplate, ResourceMethod> methods = new HashMap<>();
+
+        record URITemplate(Pattern uri, String[] mediaTypes) {
+
+        }
+
+
+        public ResourceClass(Class<?> resourceClass) {
+            this.resourceClass = resourceClass;
+            path = resourceClass.getAnnotation(Path.class).value();
+            pattern = Pattern.compile(path + "(/.*)?");
+
+
+        }
+
+        @Override
+        public Optional<ResourceMethod> matches(String path, String[] mediaTypes, UriInfoBuilder builder) {
+            return Optional.empty();
+        }
+    }
+
+    // 还有一种时 sub resource method， 请求之后，返回了另一个资源（转发、重定向）
+    static class NormalResourceMethod implements ResourceMethod {
+
+        @Override
+        public Object call(ResourceContext resourceContext, UriInfoBuilder builder) {
+            return null;
+        }
+    }
+
     interface Resource {
         Optional<ResourceMethod> matches(String path, String[] mediaTypes, UriInfoBuilder builder);
     }
