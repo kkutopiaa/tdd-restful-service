@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.*;
@@ -251,21 +252,47 @@ public class ResourceDispatcherTest {
             path = resourceClass.getAnnotation(Path.class).value();
             pattern = Pattern.compile(path + "(/.*)?");
 
-
+            for (Method method : Arrays.stream(resourceClass.getMethods())
+                    .filter(m -> m.isAnnotationPresent(GET.class)).toList()) {
+                methods.put(new URITemplate(pattern, method.getAnnotation(Produces.class).value()),
+                        new NormalResourceMethod(resourceClass, method));
+            }
         }
 
         @Override
         public Optional<ResourceMethod> matches(String path, String[] mediaTypes, UriInfoBuilder builder) {
-            return Optional.empty();
+            if (!pattern.matcher(path).matches()) {
+                return Optional.empty();
+            }
+
+            return methods.entrySet().stream()
+                    .filter(e -> e.getKey().uri.matcher(path).matches())
+                    .map(e -> e.getValue())
+                    .findFirst();
         }
     }
 
     // 还有一种时 sub resource method， 请求之后，返回了另一个资源（转发、重定向）
     static class NormalResourceMethod implements ResourceMethod {
 
+        private Class<?> resourceClass;
+        private Method method;
+
+        public NormalResourceMethod(Class<?> resourceClass, Method method) {
+            this.resourceClass = resourceClass;
+            this.method = method;
+        }
+
         @Override
         public Object call(ResourceContext resourceContext, UriInfoBuilder builder) {
-            return null;
+            Object resource = resourceContext.getResource(resourceClass);
+
+            try {
+                return method.invoke(resource);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
         }
     }
 
