@@ -195,7 +195,7 @@ public class ResourceDispatcherTest {
         when(request.getServletPath()).thenReturn("/users");
         when(context.getResource(eq(Users.class))).thenReturn(new Users());
 
-        Router router = new Router(Users.class);
+        Router router = new Router(List.of(new ResourceClass(Users.class)));
         OutboundResponse response = router.dispatch(request, context);
         GenericEntity<String> entity = (GenericEntity<String>) response.getEntity();
 
@@ -204,27 +204,25 @@ public class ResourceDispatcherTest {
     }
 
     static class Router implements ResourceRouter {
-        private Map<Pattern, Class<?>> routerTable = new HashMap<>();
 
-        public Router(Class<Users> rootResource) {
-            Path path = rootResource.getAnnotation(Path.class);
-            routerTable.put(Pattern.compile(path.value() + "(/.*)?"), rootResource);
-       }
+        private List<Resource> rootResources;
+
+        public Router(List<Resource> rootResources) {
+            this.rootResources = rootResources;
+        }
 
         @Override
         public OutboundResponse dispatch(HttpServletRequest request, ResourceContext resourceContext) {
-            String path = request.getServletPath();
-            Pattern matched = routerTable.keySet().stream()
-                    .filter(pattern -> pattern.matcher(path).matches()).findFirst().get();
-            Class<?> resource = routerTable.get(matched);
-            Object object = resourceContext.getResource(resource);
 
-            Method method = Arrays.stream(resource.getMethods())
-                    .filter(m -> m.isAnnotationPresent(GET.class)).findFirst().get();
+            ResourceMethod resourceMethod = rootResources.stream()
+                    .map(root -> root.matches(request.getServletPath(), new String[0], null))
+                    .filter(Optional::isPresent)
+                    .findFirst()
+                    .get()
+                    .get();
 
             try {
-                Object result = method.invoke(object);
-                GenericEntity entity = new GenericEntity(result, method.getGenericReturnType());
+                GenericEntity entity = resourceMethod.call(resourceContext, null);
                 return (OutboundResponse) Response.ok(entity).build();
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -284,11 +282,11 @@ public class ResourceDispatcherTest {
         }
 
         @Override
-        public Object call(ResourceContext resourceContext, UriInfoBuilder builder) {
+        public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
             Object resource = resourceContext.getResource(resourceClass);
 
             try {
-                return method.invoke(resource);
+                return new GenericEntity<>(method.invoke(resource), method.getGenericReturnType());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -301,7 +299,7 @@ public class ResourceDispatcherTest {
     }
 
     interface ResourceMethod {
-        Object call(ResourceContext resourceContext, UriInfoBuilder builder);
+        GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
     interface UriInfoBuilder {
