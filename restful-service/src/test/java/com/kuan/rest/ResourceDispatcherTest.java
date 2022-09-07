@@ -232,6 +232,21 @@ public class ResourceDispatcherTest {
         }
     }
 
+
+    interface Resource {
+        Optional<ResourceMethod> matches(String path, String[] mediaTypes, UriInfoBuilder builder);
+    }
+
+    interface ResourceMethod {
+        Object call(ResourceContext resourceContext, UriInfoBuilder builder);
+    }
+
+    interface UriInfoBuilder {
+        void pushMatchedPath(String path);
+
+        void addParameter(String name, String value);
+    }
+
     @Path("/users")
     static class Users {
 
@@ -247,8 +262,6 @@ public class ResourceDispatcherTest {
         public String asHTML(@PathParam("id") int id) {
             return "all";
         }
-
-
 
     }
 
