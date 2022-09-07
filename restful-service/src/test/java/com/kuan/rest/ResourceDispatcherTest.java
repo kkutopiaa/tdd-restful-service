@@ -3,6 +3,8 @@ package com.kuan.rest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.*;
 import jakarta.ws.rs.ext.RuntimeDelegate;
@@ -234,9 +236,19 @@ public class ResourceDispatcherTest {
     static class Users {
 
         @GET
-        public String get() {
+        @Produces(MediaType.TEXT_PLAIN)
+        public String asText() {
             return "all";
         }
+
+        @GET
+        @Path("{id}")
+        @Produces(MediaType.TEXT_HTML)
+        public String asHTML(@PathParam("id") int id) {
+            return "all";
+        }
+
+
 
     }
 
