@@ -12,7 +12,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.*;
@@ -24,10 +23,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ResourceDispatcherTest {
-
+    private Runtime runtime;
 
     @BeforeEach
     public void before() {
+        runtime = mock(Runtime.class);
         RuntimeDelegate delegate = mock(RuntimeDelegate.class);
         RuntimeDelegate.setInstance(delegate);
 
@@ -195,7 +195,7 @@ public class ResourceDispatcherTest {
         when(request.getServletPath()).thenReturn("/users");
         when(context.getResource(eq(Users.class))).thenReturn(new Users());
 
-        Router router = new Router(List.of(new ResourceClass(Users.class)));
+        Router router = new Router(runtime, List.of(new ResourceClass(Users.class)));
         OutboundResponse response = router.dispatch(request, context);
         GenericEntity<String> entity = (GenericEntity<String>) response.getEntity();
 
@@ -205,14 +205,18 @@ public class ResourceDispatcherTest {
 
     static class Router implements ResourceRouter {
 
+        private Runtime runtime;
         private List<Resource> rootResources;
 
-        public Router(List<Resource> rootResources) {
+        public Router(Runtime runtime, List<Resource> rootResources) {
+            this.runtime = runtime;
             this.rootResources = rootResources;
         }
 
         @Override
         public OutboundResponse dispatch(HttpServletRequest request, ResourceContext resourceContext) {
+
+//            runtime.createUriInfoBuilder(request);
 
             ResourceMethod resourceMethod = rootResources.stream()
                     .map(root -> root.matches(request.getServletPath(), new String[0], null))
