@@ -259,6 +259,16 @@ public class ResourceDispatcherTest {
                 methods.put(new URITemplate(pattern, method.getAnnotation(Produces.class).value()),
                         new NormalResourceMethod(resourceClass, method));
             }
+
+            // 去找 sub resource
+            for (Method method : Arrays.stream(resourceClass.getMethods())
+                    .filter(m -> m.isAnnotationPresent(Path.class)).toList()) {
+                Path path = method.getAnnotation(Path.class);
+                Pattern pattern = Pattern.compile(this.path + ("(/" + path + ")?"));
+                methods.put(new URITemplate(pattern, method.getAnnotation(Produces.class).value()),
+                        new SubResourceLocator(resourceClass, method));
+            }
+
         }
 
         @Override
@@ -298,6 +308,21 @@ public class ResourceDispatcherTest {
         }
     }
 
+
+    static class SubResourceLocator implements ResourceMethod {
+
+        public SubResourceLocator(Class<?> resourceClass, Method method) {
+
+        }
+
+        @Override
+        public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
+            return null;
+        }
+    }
+
+
+
     interface Resource {
         Optional<ResourceMethod> matches(String path, String[] mediaTypes, UriInfoBuilder builder);
     }
@@ -325,6 +350,20 @@ public class ResourceDispatcherTest {
         @Path("{id}")
         @Produces(MediaType.TEXT_HTML)
         public String asHTML(@PathParam("id") int id) {
+            return "all";
+        }
+
+        @Path("/orders")
+        public Orders getOrders() {
+            return new Orders();
+        }
+
+    }
+
+    static class Orders {
+
+        @GET
+        public String asText() {
             return "all";
         }
 
