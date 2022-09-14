@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.*;
@@ -311,17 +312,49 @@ public class ResourceDispatcherTest {
 
     static class SubResourceLocator implements ResourceMethod {
 
-        public SubResourceLocator(Class<?> resourceClass, Method method) {
+        private Class<?> resourceClass;
+        private Method method;
 
+        public SubResourceLocator(Class<?> resourceClass, Method method) {
+            this.resourceClass = resourceClass;
+            this.method = method;
         }
 
         @Override
         public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
-            return null;
+            Object resource = resourceContext.getResource(resourceClass);
+
+            try {
+                Object subResource = method.invoke(resource);
+
+                new SubResource(subResource);
+
+                return new GenericEntity<>(subResource, method.getGenericReturnType());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
         }
     }
 
 
+    static class SubResource implements Resource {
+
+        private Object subResource;
+        private Class<? extends Object> subResourceClass;
+
+        private Map<ResourceClass.URITemplate, ResourceMethod> methods = new HashMap<>();
+
+        public SubResource(Object subResource) {
+            this.subResource = subResource;
+            this.subResourceClass = subResource.getClass();
+        }
+
+        @Override
+        public Optional<ResourceMethod> matches(String path, String[] mediaTypes, UriInfoBuilder builder) {
+            return Optional.empty();
+        }
+    }
 
     interface Resource {
         Optional<ResourceMethod> matches(String path, String[] mediaTypes, UriInfoBuilder builder);
