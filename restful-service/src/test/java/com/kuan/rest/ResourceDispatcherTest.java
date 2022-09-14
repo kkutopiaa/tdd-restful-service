@@ -203,6 +203,19 @@ public class ResourceDispatcherTest {
 
     }
 
+    interface UriTemplate {
+        interface MatchResult extends Comparable<MatchResult> {
+            String getMatched();
+
+            String getRemaining();
+
+            Map<String, String> getMatchedPathParameters();
+        }
+
+        Optional<MatchResult> match(String path);
+
+    }
+
     static class Router implements ResourceRouter {
 
         private Runtime runtime;
@@ -358,6 +371,10 @@ public class ResourceDispatcherTest {
 
     interface Resource {
         Optional<ResourceMethod> matches(String path, String[] mediaTypes, UriInfoBuilder builder);
+    }
+
+    interface RootResource extends Resource {
+        UriTemplate getUriTemplate();
     }
 
     interface ResourceMethod {
