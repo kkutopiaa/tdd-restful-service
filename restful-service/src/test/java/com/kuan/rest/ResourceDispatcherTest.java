@@ -232,7 +232,7 @@ public class ResourceDispatcherTest {
 //            runtime.createUriInfoBuilder(request);
 
             ResourceMethod resourceMethod = rootResources.stream()
-                    .map(root -> root.matches(request.getServletPath(), new String[0], null))
+                    .map(root -> root.matches(request.getServletPath(), "GET", new String[0], null))
                     .filter(Optional::isPresent)
                     .findFirst()
                     .get()
@@ -285,7 +285,7 @@ public class ResourceDispatcherTest {
         }
 
         @Override
-        public Optional<ResourceMethod> matches(String path, String[] mediaTypes, UriInfoBuilder builder) {
+        public Optional<ResourceMethod> matches(String path, String method, String[] mediaTypes, UriInfoBuilder builder) {
             if (!pattern.matcher(path).matches()) {
                 return Optional.empty();
             }
@@ -341,7 +341,7 @@ public class ResourceDispatcherTest {
             try {
                 Object subResource = method.invoke(resource);
 
-                return new SubResource(subResource).matches(builder.getUnmatchedPath(), mediaTypes, builder)
+                return new SubResource(subResource).matches(builder.getUnmatchedPath(), "GET", mediaTypes, builder)
                         .get().call(resourceContext, builder);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -364,13 +364,13 @@ public class ResourceDispatcherTest {
         }
 
         @Override
-        public Optional<ResourceMethod> matches(String path, String[] mediaTypes, UriInfoBuilder builder) {
+        public Optional<ResourceMethod> matches(String path, String method, String[] mediaTypes, UriInfoBuilder builder) {
             return Optional.empty();
         }
     }
 
     interface Resource {
-        Optional<ResourceMethod> matches(String path, String[] mediaTypes, UriInfoBuilder builder);
+        Optional<ResourceMethod> matches(String path, String method, String[] mediaTypes, UriInfoBuilder builder);
     }
 
     interface RootResource extends Resource {
