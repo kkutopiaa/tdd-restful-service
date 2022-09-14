@@ -12,7 +12,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.*;
@@ -267,7 +266,7 @@ public class ResourceDispatcherTest {
                 Path path = method.getAnnotation(Path.class);
                 Pattern pattern = Pattern.compile(this.path + ("(/" + path + ")?"));
                 methods.put(new URITemplate(pattern, method.getAnnotation(Produces.class).value()),
-                        new SubResourceLocator(resourceClass, method));
+                        new SubResourceLocator(resourceClass, method, new String[0]));
             }
 
         }
@@ -314,10 +313,12 @@ public class ResourceDispatcherTest {
 
         private Class<?> resourceClass;
         private Method method;
+        private String[] mediaTypes;
 
-        public SubResourceLocator(Class<?> resourceClass, Method method) {
+        public SubResourceLocator(Class<?> resourceClass, Method method, String[] mediaTypes) {
             this.resourceClass = resourceClass;
             this.method = method;
+            this.mediaTypes = mediaTypes;
         }
 
         @Override
@@ -327,9 +328,8 @@ public class ResourceDispatcherTest {
             try {
                 Object subResource = method.invoke(resource);
 
-                new SubResource(subResource);
-
-                return new GenericEntity<>(subResource, method.getGenericReturnType());
+                return new SubResource(subResource).matches(builder.getUnmatchedPath(), mediaTypes, builder)
+                        .get().call(resourceContext, builder);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -368,6 +368,9 @@ public class ResourceDispatcherTest {
         void pushMatchedPath(String path);
 
         void addParameter(String name, String value);
+
+        String getUnmatchedPath();
+
     }
 
     @Path("/users")
