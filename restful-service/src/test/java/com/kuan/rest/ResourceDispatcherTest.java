@@ -203,19 +203,6 @@ public class ResourceDispatcherTest {
 
     }
 
-    interface UriTemplate {
-        interface MatchResult extends Comparable<MatchResult> {
-            String getMatched();
-
-            String getRemaining();
-
-            Map<String, String> getMatchedPathParameters();
-        }
-
-        Optional<MatchResult> match(String path);
-
-    }
-
     static class Router implements ResourceRouter {
 
         private Runtime runtime;
@@ -379,15 +366,6 @@ public class ResourceDispatcherTest {
 
     interface ResourceMethod {
         GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder);
-    }
-
-    interface UriInfoBuilder {
-        void pushMatchedPath(String path);
-
-        void addParameter(String name, String value);
-
-        String getUnmatchedPath();
-
     }
 
     @Path("/users")
