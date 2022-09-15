@@ -120,3 +120,26 @@ spike： 并不是把所有细节都理解完，目的是花最小的成本，�
 3. 匹配到的 RootResource 通过 Context 实例化；
 4. 调用实例化后的 RootResource，处理请求，过程中把中间信息存入 UriInfo；
 5. ResourceRouter 拿到结果后，转化为 Response 对象返回。
+
+--- 
+
+在对 Resource Dispatch 部分、SubResource 部分进行了 Spike 之后，架构愿景如下：
+![](imgs/08.spike之后-Resource的架构愿景.png)
+![](imgs/09.spike之后-Resource的时序图.jpg)
+
+据此，原本设计的 ResourceRouter将 需求，分解到 Resource/RootResoruce/ResoutceMethod 模块中。  
+所得结果如下：
+- ResourceRouter
+  - 将 Reosurce Method 的返回值包装为 Response 对象
+    - 根据与 Path 匹配结果，降序排列 RootResource，选择第一个的 RootResource
+    - 如果没有匹配的 RootResource，则构造 404 的 Response
+    - 如果返回的 RootResource 中无法匹配剩余 Path，则构造 404 的 Response
+    - 如果 ResourceMethod 返回 null，则构造 204 的 Response
+- Resource/RootResource/ResourceMethod
+  - 在处理请求派分时，可以支持多级子资源（Sub-Resource）
+  - 在处理请求派分时，可以根据客户端提供的超媒体类型，选择对应的资源方法（Resource Method）
+  - 在处理请求派分时，可以根据客户端提供的 Http 方法，选择对应的资源方法
+  - 资源方法可以返回 Java 对象，由 Runtime 自行推断正确的返回状态
+  - 资源方法可以不明确指定返回的超媒体类型，由 Runtime 自行推断，比如，资源方法标注了 Produces 标注，那么就使用标注提供的超媒体类型等
+  - 资源方法可按找期望的类型，访问 Http 请求的内容
+  - 资源对象和资源方法可接受环境组件的注入
