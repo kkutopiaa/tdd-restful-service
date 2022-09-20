@@ -12,6 +12,9 @@ public interface Runtime {
 
     ResourceContext createResourceContext(HttpServletRequest request, HttpServletResponse response);
 
+    UriInfoBuilder createUriInfoBuilder(HttpServletRequest request);
+
+
     // 指明是 application scope 的， 还有 request scope 的。
     Context getApplicationContext();
 

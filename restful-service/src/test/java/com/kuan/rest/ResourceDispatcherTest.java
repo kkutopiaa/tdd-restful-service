@@ -15,8 +15,7 @@ import java.util.Vector;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +24,7 @@ public class ResourceDispatcherTest {
     private RuntimeDelegate delegate;
     private HttpServletRequest request;
     private ResourceContext context;
+    private UriInfoBuilder builder;
 
     @BeforeEach
     public void before() {
@@ -39,6 +39,9 @@ public class ResourceDispatcherTest {
         when(request.getMethod()).thenReturn("GET");
         when(request.getHeaders(eq(HttpHeaders.ACCEPT)))
                 .thenReturn(new Vector<>(List.of(MediaType.WILDCARD)).elements());
+
+        builder = mock(UriInfoBuilder.class);
+        when(runtime.createUriInfoBuilder(same(request))).thenReturn(builder);
     }
 
 
@@ -59,7 +62,7 @@ public class ResourceDispatcherTest {
         when(unmatched.getUriTemplate()).thenReturn(unmatchedUriTemplate);
         when(unmatchedUriTemplate.match(any())).thenReturn(Optional.empty());
 
-        ResourceRouter router = new DefaultResourceRoot(List.of(matched, unmatched));
+        ResourceRouter router = new DefaultResourceRoot(runtime, List.of(matched, unmatched));
         OutboundResponse response = router.dispatch(request, context);
         GenericEntity genericEntity = response.getGenericEntity();
         assertSame(entity, genericEntity);

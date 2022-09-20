@@ -31,23 +31,26 @@ public interface ResourceRouter {
 
 class DefaultResourceRoot implements ResourceRouter {
 
+    private Runtime runtime;
     private List<RootResource> rootResources;
 
-    public DefaultResourceRoot(List<RootResource> rootResources) {
+    public DefaultResourceRoot(Runtime runtime, List<RootResource> rootResources) {
+        this.runtime = runtime;
         this.rootResources = rootResources;
     }
 
     @Override
     public OutboundResponse dispatch(HttpServletRequest request, ResourceContext resourceContext) {
         String path = request.getServletPath();
+        UriInfoBuilder uriInfoBuilder = runtime.createUriInfoBuilder(request);
         Optional<RootResource> matched = rootResources.stream()
                 .map(resource -> new Result(resource.getUriTemplate().match(path), resource))
                 .filter(result -> result.matched.isPresent())
                 .map(Result::resource)
                 .findFirst();
         Optional<ResourceMethod> method = matched.flatMap(resource -> resource.match(path, request.getMethod(),
-                Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), null));
-        GenericEntity<?> entity = method.map(m -> m.call(resourceContext, null)).get();
+                Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder));
+        GenericEntity<?> entity = method.map(m -> m.call(resourceContext, uriInfoBuilder)).get();
         System.out.println("entity >> " + entity);
 
         return (OutboundResponse) Response.ok(entity).build();
