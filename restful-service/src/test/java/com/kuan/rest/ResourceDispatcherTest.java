@@ -35,7 +35,7 @@ public class ResourceDispatcherTest {
 
         request = mock(HttpServletRequest.class);
         context = mock(ResourceContext.class);
-        when(request.getServletPath()).thenReturn("/users");
+        when(request.getServletPath()).thenReturn("/users/1");
         when(request.getMethod()).thenReturn("GET");
         when(request.getHeaders(eq(HttpHeaders.ACCEPT)))
                 .thenReturn(new Vector<>(List.of(MediaType.WILDCARD)).elements());
@@ -52,8 +52,9 @@ public class ResourceDispatcherTest {
         UriTemplate.MatchResult result = mock(UriTemplate.MatchResult.class);
         ResourceRouter.ResourceMethod method = mock(ResourceRouter.ResourceMethod.class);
         when(matched.getUriTemplate()).thenReturn(matchedUriTemplate);
-        when(matchedUriTemplate.match(eq("/users"))).thenReturn(Optional.of(result));
-        when(matched.match(eq("/users"), eq("GET"), eq(new String[]{MediaType.WILDCARD}), eq(builder)))
+        when(matchedUriTemplate.match(eq("/users/1"))).thenReturn(Optional.of(result));
+        when(result.getRemaining()).thenReturn("/1");
+        when(matched.match(eq("/1"), eq("GET"), eq(new String[]{MediaType.WILDCARD}), eq(builder)))
                 .thenReturn(Optional.of(method));
         GenericEntity entity = new GenericEntity("matched", String.class);
         when(method.call(eq(context), eq(builder))).thenReturn(entity);
