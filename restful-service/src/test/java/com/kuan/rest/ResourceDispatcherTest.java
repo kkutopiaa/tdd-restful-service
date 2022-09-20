@@ -52,16 +52,28 @@ public class ResourceDispatcherTest {
         ResourceRouter.RootResource matched = rootResource(matched("/users/1", result("/1")), returns(entity));
 
 
-        ResourceRouter.RootResource unmatched = mock(ResourceRouter.RootResource.class);
-        UriTemplate unmatchedUriTemplate = mock(UriTemplate.class);
-        when(unmatched.getUriTemplate()).thenReturn(unmatchedUriTemplate);
-        when(unmatchedUriTemplate.match(eq("/users"))).thenReturn(Optional.empty());
+        UriTemplate unmatchedUriTemplate = unmatched("/users/1");
+
+        ResourceRouter.RootResource unmatched = rootResource(unmatchedUriTemplate);
+
 
         ResourceRouter router = new DefaultResourceRoot(runtime, List.of(matched, unmatched));
         OutboundResponse response = router.dispatch(request, context);
         GenericEntity genericEntity = response.getGenericEntity();
         assertSame(entity, genericEntity);
         assertEquals(200, response.getStatus());
+    }
+
+    private ResourceRouter.RootResource rootResource(UriTemplate unmatchedUriTemplate) {
+        ResourceRouter.RootResource unmatched = mock(ResourceRouter.RootResource.class);
+        when(unmatched.getUriTemplate()).thenReturn(unmatchedUriTemplate);
+        return unmatched;
+    }
+
+    private UriTemplate unmatched(String path) {
+        UriTemplate unmatchedUriTemplate = mock(UriTemplate.class);
+        when(unmatchedUriTemplate.match(eq(path))).thenReturn(Optional.empty());
+        return unmatchedUriTemplate;
     }
 
     private ResourceRouter.RootResource rootResource(UriTemplate matchedUriTemplate, ResourceRouter.ResourceMethod method) {
