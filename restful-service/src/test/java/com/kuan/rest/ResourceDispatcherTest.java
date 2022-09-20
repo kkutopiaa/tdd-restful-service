@@ -49,15 +49,9 @@ public class ResourceDispatcherTest {
     public void should_user_matched_root_resource() {
         GenericEntity entity = new GenericEntity("matched", String.class);
 
-        ResourceRouter.RootResource matched = rootResource(matched("/users/1", result("/1")), returns(entity));
-
-
-        UriTemplate unmatchedUriTemplate = unmatched("/users/1");
-
-        ResourceRouter.RootResource unmatched = rootResource(unmatchedUriTemplate);
-
-
-        ResourceRouter router = new DefaultResourceRoot(runtime, List.of(matched, unmatched));
+        ResourceRouter router = new DefaultResourceRoot(runtime, List.of(
+                rootResource(matched("/users/1", result("/1")), returns(entity)),
+                rootResource(unmatched("/users/1"))));
         OutboundResponse response = router.dispatch(request, context);
         GenericEntity genericEntity = response.getGenericEntity();
         assertSame(entity, genericEntity);
