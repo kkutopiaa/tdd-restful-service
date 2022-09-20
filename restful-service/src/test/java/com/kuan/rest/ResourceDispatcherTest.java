@@ -49,20 +49,13 @@ public class ResourceDispatcherTest {
     public void should_user_matched_root_resource() {
         GenericEntity entity = new GenericEntity("matched", String.class);
 
-        UriTemplate.MatchResult result = mock(UriTemplate.MatchResult.class);
-        when(result.getRemaining()).thenReturn("/1");
+        UriTemplate.MatchResult result = result("/1");
 
-        UriTemplate matchedUriTemplate = mock(UriTemplate.class);
-        when(matchedUriTemplate.match(eq("/users/1"))).thenReturn(Optional.of(result));
+        UriTemplate matchedUriTemplate = matched("/users/1", result);
 
-        ResourceRouter.ResourceMethod method = mock(ResourceRouter.ResourceMethod.class);
-        when(method.call(same(context), same(builder))).thenReturn(entity);
+        ResourceRouter.ResourceMethod method = returns(entity);
 
-        ResourceRouter.RootResource matched = mock(ResourceRouter.RootResource.class);
-        when(matched.getUriTemplate()).thenReturn(matchedUriTemplate);
-        when(matched.match(eq("/1"), eq("GET"), eq(new String[]{MediaType.WILDCARD}), eq(builder)))
-                .thenReturn(Optional.of(method));
-
+        ResourceRouter.RootResource matched = rootResource(matchedUriTemplate, method);
 
 
         ResourceRouter.RootResource unmatched = mock(ResourceRouter.RootResource.class);
@@ -75,6 +68,32 @@ public class ResourceDispatcherTest {
         GenericEntity genericEntity = response.getGenericEntity();
         assertSame(entity, genericEntity);
         assertEquals(200, response.getStatus());
+    }
+
+    private ResourceRouter.RootResource rootResource(UriTemplate matchedUriTemplate, ResourceRouter.ResourceMethod method) {
+        ResourceRouter.RootResource matched = mock(ResourceRouter.RootResource.class);
+        when(matched.getUriTemplate()).thenReturn(matchedUriTemplate);
+        when(matched.match(eq("/1"), eq("GET"), eq(new String[]{MediaType.WILDCARD}), eq(builder)))
+                .thenReturn(Optional.of(method));
+        return matched;
+    }
+
+    private ResourceRouter.ResourceMethod returns(GenericEntity entity) {
+        ResourceRouter.ResourceMethod method = mock(ResourceRouter.ResourceMethod.class);
+        when(method.call(same(context), same(builder))).thenReturn(entity);
+        return method;
+    }
+
+    private UriTemplate matched(String path, UriTemplate.MatchResult result) {
+        UriTemplate matchedUriTemplate = mock(UriTemplate.class);
+        when(matchedUriTemplate.match(eq(path))).thenReturn(Optional.of(result));
+        return matchedUriTemplate;
+    }
+
+    private UriTemplate.MatchResult result(String path) {
+        UriTemplate.MatchResult result = mock(UriTemplate.MatchResult.class);
+        when(result.getRemaining()).thenReturn(path);
+        return result;
     }
 
 }
