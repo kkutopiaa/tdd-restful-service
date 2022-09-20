@@ -14,8 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Vector;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -70,6 +69,15 @@ public class ResourceDispatcherTest {
         assertSame(entity1, response.getGenericEntity());
         assertEquals(200, response.getStatus());
     }
+
+    @Test
+    public void should_return_404_if_no_root_resource_matched() {
+        ResourceRouter router = new DefaultResourceRoot(runtime, List.of(rootResource(unmatched("/users/1"))));
+        OutboundResponse response = router.dispatch(request, context);
+        assertNull(response.getGenericEntity());
+        assertEquals(404, response.getStatus());
+    }
+
 
     private ResourceRouter.RootResource rootResource(UriTemplate unmatchedUriTemplate) {
         ResourceRouter.RootResource unmatched = mock(ResourceRouter.RootResource.class);
