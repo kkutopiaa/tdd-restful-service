@@ -24,6 +24,8 @@ class StubResponseBuilder extends Response.ResponseBuilder {
     public Response build() {
         OutboundResponse response = mock(OutboundResponse.class);
         when(response.getEntity()).thenReturn(entity);
+        when(response.getGenericEntity()).thenReturn((GenericEntity) entity);
+        when(response.getStatus()).thenReturn(status);
         return response;
     }
 
@@ -40,7 +42,8 @@ class StubResponseBuilder extends Response.ResponseBuilder {
 
     @Override
     public Response.ResponseBuilder status(int status, String reasonPhrase) {
-        return null;
+        this.status = status;
+        return this;
     }
 
     @Override
