@@ -49,13 +49,7 @@ public class ResourceDispatcherTest {
     public void should_user_matched_root_resource() {
         GenericEntity entity = new GenericEntity("matched", String.class);
 
-        UriTemplate.MatchResult result = result("/1");
-
-        UriTemplate matchedUriTemplate = matched("/users/1", result);
-
-        ResourceRouter.ResourceMethod method = returns(entity);
-
-        ResourceRouter.RootResource matched = rootResource(matchedUriTemplate, method);
+        ResourceRouter.RootResource matched = rootResource(matched("/users/1", result("/1")), returns(entity));
 
 
         ResourceRouter.RootResource unmatched = mock(ResourceRouter.RootResource.class);
