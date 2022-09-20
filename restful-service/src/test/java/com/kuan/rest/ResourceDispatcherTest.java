@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Vector;
 
@@ -53,8 +54,20 @@ public class ResourceDispatcherTest {
                 rootResource(matched("/users/1", result("/1")), returns(entity)),
                 rootResource(unmatched("/users/1"))));
         OutboundResponse response = router.dispatch(request, context);
-        GenericEntity genericEntity = response.getGenericEntity();
-        assertSame(entity, genericEntity);
+        assertSame(entity, response.getGenericEntity());
+        assertEquals(200, response.getStatus());
+    }
+
+    @Test
+    public void should_sort_matched_root_resource_descending_order() {
+        GenericEntity entity1 = new GenericEntity("1", String.class);
+        GenericEntity entity2 = new GenericEntity("2", String.class);
+
+        ResourceRouter router = new DefaultResourceRoot(runtime, List.of(
+                rootResource(matched("/users/1", result("/1", 2)), returns(entity2)),
+                rootResource(matched("/users/1", result("/1", 1)), returns(entity1))));
+        OutboundResponse response = router.dispatch(request, context);
+        assertSame(entity1, response.getGenericEntity());
         assertEquals(200, response.getStatus());
     }
 
@@ -90,10 +103,44 @@ public class ResourceDispatcherTest {
         return matchedUriTemplate;
     }
 
-    private UriTemplate.MatchResult result(String path) {
-        UriTemplate.MatchResult result = mock(UriTemplate.MatchResult.class);
-        when(result.getRemaining()).thenReturn(path);
-        return result;
+    private UriTemplate.MatchResult result(String path, int order) {
+        return new FakeMatchResult(path, order);
     }
+
+    private UriTemplate.MatchResult result(String path) {
+        return result(path, 0);
+    }
+
+    class FakeMatchResult implements UriTemplate.MatchResult {
+
+        private String remaining;
+        private Integer order;
+
+        public FakeMatchResult(String remaining, Integer order) {
+            this.remaining = remaining;
+            this.order = order;
+        }
+
+        @Override
+        public String getMatched() {
+            return null;
+        }
+
+        @Override
+        public String getRemaining() {
+            return this.remaining;
+        }
+
+        @Override
+        public Map<String, String> getMatchedPathParameters() {
+            return null;
+        }
+
+        @Override
+        public int compareTo(UriTemplate.MatchResult o) {
+            return this.order.compareTo(((FakeMatchResult) o).order);
+        }
+    }
+
 
 }
