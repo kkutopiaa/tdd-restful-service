@@ -57,7 +57,7 @@ public class ResourceDispatcherTest {
         when(matched.match(eq("/1"), eq("GET"), eq(new String[]{MediaType.WILDCARD}), eq(builder)))
                 .thenReturn(Optional.of(method));
         GenericEntity entity = new GenericEntity("matched", String.class);
-        when(method.call(eq(context), eq(builder))).thenReturn(entity);
+        when(method.call(same(context), same(builder))).thenReturn(entity);
 
         ResourceRouter.RootResource unmatched = mock(ResourceRouter.RootResource.class);
         UriTemplate unmatchedUriTemplate = mock(UriTemplate.class);
