@@ -52,9 +52,14 @@ class DefaultResourceRoot implements ResourceRouter {
                 result -> result.resource.match(result.matched.get().getRemaining(), request.getMethod(),
                         Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder)
         );
+
+        if (method.isEmpty()) {
+            return (OutboundResponse) Response.status(Response.Status.NOT_FOUND).build();
+        }
+
         return (OutboundResponse) method.map(m -> m.call(resourceContext, uriInfoBuilder))
                 .map(entity -> Response.ok(entity).build())
-                .orElseGet(() -> Response.status(Response.Status.NOT_FOUND).build());
+                .orElseGet(() -> Response.noContent().build());
     }
 
     record Result(Optional<UriTemplate.MatchResult> matched, RootResource resource) {
