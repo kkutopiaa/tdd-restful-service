@@ -45,10 +45,10 @@ public class ResourceServlet extends HttpServlet {
     private void respond(HttpServletResponse resp, OutboundResponse response) throws IOException {
         resp.setStatus(response.getStatus());
         headers(resp, response.getHeaders());
-        entity(resp, response, response.getGenericEntity());
+        body(resp, response, response.getGenericEntity());
     }
 
-    private void entity(HttpServletResponse resp, OutboundResponse response, GenericEntity entity) throws IOException {
+    private void body(HttpServletResponse resp, OutboundResponse response, GenericEntity entity) throws IOException {
         if (entity == null) {
             return;
         }
