@@ -45,8 +45,8 @@ class DefaultResourceRoot implements ResourceRouter {
         String path = request.getServletPath();
         UriInfoBuilder uriInfoBuilder = runtime.createUriInfoBuilder(request);
         Optional<Result> matched = rootResources.stream()
-                .map(resource -> new Result(resource.getUriTemplate().match(path), resource))
-                .filter(result -> result.matched.isPresent())
+                .map(resource -> match(path, resource))
+                .filter(Result::isMatched)
                 .min(Comparator.comparing(result -> result.matched.get()));
         Optional<ResourceMethod> method = matched.flatMap(
                 result -> result.resource.match(result.matched.get().getRemaining(), request.getMethod(),
@@ -62,8 +62,15 @@ class DefaultResourceRoot implements ResourceRouter {
                 .orElseGet(() -> Response.noContent().build());
     }
 
+    private Result match(String path, RootResource resource) {
+        return new Result(resource.getUriTemplate().match(path), resource);
+    }
+
     record Result(Optional<UriTemplate.MatchResult> matched, RootResource resource) {
 
+        private boolean isMatched() {
+            return matched.isPresent();
+        }
     }
 
 
