@@ -7,7 +7,6 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,10 +48,7 @@ class DefaultResourceRoot implements ResourceRouter {
                 .filter(Result::isMatched)
                 .sorted()
                 .findFirst();
-        Optional<ResourceMethod> method = matched.flatMap(
-                result -> result.resource.match(result.matched.get().getRemaining(), request.getMethod(),
-                        Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder)
-        );
+        Optional<ResourceMethod> method = matched.flatMap(result -> result.findResourceMethod(request, uriInfoBuilder));
 
         if (method.isEmpty()) {
             return (OutboundResponse) Response.status(Response.Status.NOT_FOUND).build();
@@ -79,6 +75,10 @@ class DefaultResourceRoot implements ResourceRouter {
                     .orElse(0);
         }
 
+        private Optional<ResourceMethod> findResourceMethod(HttpServletRequest request, UriInfoBuilder uriInfoBuilder) {
+            return resource.match(matched.get().getRemaining(), request.getMethod(),
+                    Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder);
+        }
     }
 
 
