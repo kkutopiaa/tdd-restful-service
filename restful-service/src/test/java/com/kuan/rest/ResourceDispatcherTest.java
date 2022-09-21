@@ -81,7 +81,7 @@ public class ResourceDispatcherTest {
     @Test
     public void should_return_404_if_no_resource_method_found() {
         ResourceRouter router = new DefaultResourceRoot(runtime,
-                List.of(rootResource(matched("/users/1", result("1")))));
+                List.of(rootResource(matched("/users/1", result("/1")))));
         OutboundResponse response = router.dispatch(request, context);
         assertNull(response.getGenericEntity());
         assertEquals(404, response.getStatus());
@@ -90,7 +90,7 @@ public class ResourceDispatcherTest {
     @Test
     public void should_return_204_if_method_return_null() {
         ResourceRouter router = new DefaultResourceRoot(runtime,
-                List.of(rootResource(matched("/users/1", result("1")), returns(null))));
+                List.of(rootResource(matched("/users/1", result("/1")), returns(null))));
         OutboundResponse response = router.dispatch(request, context);
         assertNull(response.getGenericEntity());
         assertEquals(204, response.getStatus());
