@@ -47,7 +47,8 @@ class DefaultResourceRoot implements ResourceRouter {
         Optional<Result> matched = rootResources.stream()
                 .map(resource -> match(path, resource))
                 .filter(Result::isMatched)
-                .min(Comparator.comparing(result -> result.matched.get()));
+                .sorted()
+                .findFirst();
         Optional<ResourceMethod> method = matched.flatMap(
                 result -> result.resource.match(result.matched.get().getRemaining(), request.getMethod(),
                         Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder)
@@ -66,11 +67,18 @@ class DefaultResourceRoot implements ResourceRouter {
         return new Result(resource.getUriTemplate().match(path), resource);
     }
 
-    record Result(Optional<UriTemplate.MatchResult> matched, RootResource resource) {
+    record Result(Optional<UriTemplate.MatchResult> matched, RootResource resource) implements Comparable<Result> {
 
         private boolean isMatched() {
             return matched.isPresent();
         }
+
+        @Override
+        public int compareTo(Result o) {
+            return matched.flatMap(x -> o.matched.map(x::compareTo))
+                    .orElse(0);
+        }
+
     }
 
 
