@@ -43,12 +43,11 @@ class DefaultResourceRoot implements ResourceRouter {
     public OutboundResponse dispatch(HttpServletRequest request, ResourceContext resourceContext) {
         String path = request.getServletPath();
         UriInfoBuilder uriInfoBuilder = runtime.createUriInfoBuilder(request);
-        Optional<Result> matched = rootResources.stream()
+        Optional<ResourceMethod> method = rootResources.stream()
                 .map(resource -> match(path, resource))
                 .filter(Result::isMatched)
-                .sorted()
-                .findFirst();
-        Optional<ResourceMethod> method = matched.flatMap(result -> result.findResourceMethod(request, uriInfoBuilder));
+                .sorted().findFirst()
+                .flatMap(result -> result.findResourceMethod(request, uriInfoBuilder));
 
         if (method.isEmpty()) {
             return (OutboundResponse) Response.status(Response.Status.NOT_FOUND).build();
@@ -76,8 +75,8 @@ class DefaultResourceRoot implements ResourceRouter {
         }
 
         private Optional<ResourceMethod> findResourceMethod(HttpServletRequest request, UriInfoBuilder uriInfoBuilder) {
-            return resource.match(matched.get().getRemaining(), request.getMethod(),
-                    Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder);
+            return matched.flatMap(result -> resource.match(result.getRemaining(), request.getMethod(),
+                    Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder));
         }
     }
 
