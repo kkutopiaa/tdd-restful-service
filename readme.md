@@ -143,3 +143,10 @@ spike： 并不是把所有细节都理解完，目的是花最小的成本，�
   - 资源方法可以不明确指定返回的超媒体类型，由 Runtime 自行推断，比如，资源方法标注了 Produces 标注，那么就使用标注提供的超媒体类型等
   - 资源方法可按找期望的类型，访问 Http 请求的内容
   - 资源对象和资源方法可接受环境组件的注入
+
+--- 
+至此（参考 git commit 顺序），完成了 ResourceRouter 的基本功能，沿着调用栈顺序，该进入到 RootResource/Resource/ResourceMethod 的开发中。  
+而在当前的架构愿景下，RootResource/Resource/ResourceMethod 都需要使用 UriTemplate、UriInfoBuilder 作为支撑。  
+
+在这里，UriTemplate 的开发是可以使用经典学派的做法往下走的。 对 UriTemplate 进一步 Spike，细化之后的任务列表：
+
