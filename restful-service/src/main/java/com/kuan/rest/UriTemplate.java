@@ -22,7 +22,12 @@ class UriTemplateString implements UriTemplate {
     private Pattern pattern;
 
     public UriTemplateString(String template) {
-        pattern = Pattern.compile("(" + template + ")" + "(/.*)?");
+        Pattern variable = Pattern.compile("\\{\\w[\\w.-]*}");
+        Matcher matcher = variable.matcher(template);
+
+        String templateWithVariable = matcher.replaceAll("([^/]+?)");
+
+        pattern = Pattern.compile("(" + templateWithVariable + ")" + "(/.*)?");
     }
 
     @Override
