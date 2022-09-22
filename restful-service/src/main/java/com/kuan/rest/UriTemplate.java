@@ -14,3 +14,15 @@ interface UriTemplate {
 
     Optional<MatchResult> match(String path);
 }
+
+class UriTemplateString implements UriTemplate {
+
+    public UriTemplateString(String template) {
+
+    }
+
+    @Override
+    public Optional<MatchResult> match(String path) {
+        return null;
+    }
+}
