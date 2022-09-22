@@ -22,7 +22,7 @@ class UriTemplateString implements UriTemplate {
     private Pattern pattern;
 
     public UriTemplateString(String template) {
-        pattern = Pattern.compile(template);
+        pattern = Pattern.compile("(" + template + ")" + "(/.*)?");
     }
 
     @Override
@@ -31,6 +31,27 @@ class UriTemplateString implements UriTemplate {
         if (!matcher.matches()) {
             return Optional.empty();
         }
-        return null;
+        int count = matcher.groupCount();
+        return Optional.of(new MatchResult() {
+            @Override
+            public String getMatched() {
+                return matcher.group(1);
+            }
+
+            @Override
+            public String getRemaining() {
+                return matcher.group(count);
+            }
+
+            @Override
+            public Map<String, String> getMatchedPathParameters() {
+                return null;
+            }
+
+            @Override
+            public int compareTo(MatchResult o) {
+                return 0;
+            }
+        });
     }
 }
