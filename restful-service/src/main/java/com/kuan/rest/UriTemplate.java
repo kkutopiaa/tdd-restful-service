@@ -2,6 +2,8 @@ package com.kuan.rest;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 interface UriTemplate {
     interface MatchResult extends Comparable<MatchResult> {
@@ -17,12 +19,18 @@ interface UriTemplate {
 
 class UriTemplateString implements UriTemplate {
 
-    public UriTemplateString(String template) {
+    private Pattern pattern;
 
+    public UriTemplateString(String template) {
+        pattern = Pattern.compile(template);
     }
 
     @Override
     public Optional<MatchResult> match(String path) {
+        Matcher matcher = pattern.matcher(path);
+        if (!matcher.matches()) {
+            return Optional.empty();
+        }
         return null;
     }
 }
