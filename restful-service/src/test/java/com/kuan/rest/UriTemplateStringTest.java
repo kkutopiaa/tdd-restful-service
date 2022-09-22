@@ -7,8 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @Author: qxkk
@@ -33,6 +32,16 @@ public class UriTemplateStringTest {
 
         assertEquals("/users", result.getMatched());
         assertEquals("/1", result.getRemaining());
+    }
+
+    @Test
+    public void should_return_match_result_if_path_with_variable_matched() {
+        UriTemplateString template = new UriTemplateString("/users/{id}");
+
+        UriTemplate.MatchResult result = template.match("/users/1").get();
+
+        assertEquals("/users/1", result.getMatched());
+        assertNull(result.getRemaining());
     }
 
 
