@@ -18,16 +18,15 @@ interface UriTemplate {
 }
 
 class UriTemplateString implements UriTemplate {
-
+    private final Pattern variable = Pattern.compile("\\{\\w[\\w.-]*}");
     private Pattern pattern;
 
     public UriTemplateString(String template) {
-        Pattern variable = Pattern.compile("\\{\\w[\\w.-]*}");
-        Matcher matcher = variable.matcher(template);
+        pattern = Pattern.compile("(" + variable(template) + ")" + "(/.*)?");
+    }
 
-        String templateWithVariable = matcher.replaceAll("([^/]+?)");
-
-        pattern = Pattern.compile("(" + templateWithVariable + ")" + "(/.*)?");
+    private String variable(String template) {
+        return variable.matcher(template).replaceAll("([^/]+?)");
     }
 
     @Override
