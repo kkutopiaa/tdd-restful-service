@@ -82,3 +82,26 @@ class DefaultResourceRoot implements ResourceRouter {
 
 
 }
+
+
+class RootResourceClass implements ResourceRouter.RootResource {
+
+
+    public RootResourceClass(Class<?> usersClass) {
+
+    }
+
+    @Override
+    public Optional<ResourceRouter.ResourceMethod> match(String path, String method, String[] mediaTypes, UriInfoBuilder builder) {
+        return Optional.empty();
+    }
+
+    @Override
+    public UriTemplate getUriTemplate() {
+        // 这部分功能： 将 RootResource 上的 @Path 信息，转化为 UriTemplate 对象
+        // 可预见的，随着 RootResource 的具体 case 越来越多，这里写的实现逻辑也越来越复杂，
+        // 可以确定的是，最终一定会通过重构的方式，将这部分逻辑分离出去。
+        // 所以，可以单独把 UriTemplate 抽出来做测试
+        return null;
+    }
+}
