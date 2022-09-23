@@ -63,4 +63,9 @@ public class UriTemplateStringTest {
         assertEquals("1", result.getMatchedPathParameters().get("id"));
     }
 
+    @Test
+    public void should_throw_illegal_argument_exception_if_variable_redefined() {
+        assertThrows(IllegalArgumentException.class, () -> new UriTemplateString("/users/{id:[0-9]+}/{id}"));
+    }
+
 }
