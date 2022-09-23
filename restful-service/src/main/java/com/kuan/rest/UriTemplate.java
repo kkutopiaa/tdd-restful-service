@@ -24,10 +24,16 @@ class UriTemplateString implements UriTemplate {
     private static final String NON_BRACKETS = "[^\\{}]+";
     private static final Pattern variable = Pattern.compile(LEFT_BRACKET + group(VARIABLE_NAME) +
             group(":" + group(NON_BRACKETS)) + "?" + RIGHT_BRACKET);
+    private static final int variableNameGroup = 1;
+    private static final int variablePatternGroup = 3;
+
+    private static final String defaultVariablePattern = "([^/]+?)";
+
 
     private final Pattern pattern;
     private final List<String> variables = new ArrayList<>();
     private final int variableGroupStartFrom;
+
 
     private static String group(String pattern) {
         return "(" + pattern + ")";
@@ -40,8 +46,9 @@ class UriTemplateString implements UriTemplate {
 
     private String variable(String template) {
         return variable.matcher(template).replaceAll(result -> {
-            variables.add(result.group(1));
-            return result.group(3) == null ? "([^/]+?)" : result.group(3);
+            variables.add(result.group(variableNameGroup));
+            return result.group(variablePatternGroup) == null ? defaultVariablePattern
+                    : result.group(variablePatternGroup);
         });
     }
 
@@ -61,7 +68,7 @@ class UriTemplateString implements UriTemplate {
         return Optional.of(new MatchResult() {
             @Override
             public String getMatched() {
-                return matcher.group(1);
+                return matcher.group(variableNameGroup);
             }
 
             @Override
