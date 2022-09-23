@@ -48,7 +48,7 @@ class UriTemplateString implements UriTemplate {
         return variable.matcher(template).replaceAll(result -> {
             variables.add(result.group(variableNameGroup));
             return result.group(variablePatternGroup) == null ? defaultVariablePattern
-                    : result.group(variablePatternGroup);
+                    : group(result.group(variablePatternGroup));
         });
     }
 
