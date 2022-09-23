@@ -21,7 +21,9 @@ class UriTemplateString implements UriTemplate {
     private static final String LEFT_BRACKET = "\\{";
     private static final String RIGHT_BRACKET = "}";
     private static final String VARIABLE_NAME = "\\w[\\w.-]*";
-    private static final Pattern variable = Pattern.compile(LEFT_BRACKET + group(VARIABLE_NAME) + RIGHT_BRACKET);
+    private static final String NON_BRACKETS = "[^\\{}]+";
+    private static final Pattern variable = Pattern.compile(LEFT_BRACKET + group(VARIABLE_NAME) +
+            group(":" + group(NON_BRACKETS)) + "?" + RIGHT_BRACKET);
 
     private final Pattern pattern;
     private final List<String> variables = new ArrayList<>();
@@ -39,7 +41,7 @@ class UriTemplateString implements UriTemplate {
     private String variable(String template) {
         return variable.matcher(template).replaceAll(result -> {
             variables.add(result.group(1));
-            return "([^/]+?)";
+            return result.group(3) == null ? "([^/]+?)" : result.group(3);
         });
     }
 
