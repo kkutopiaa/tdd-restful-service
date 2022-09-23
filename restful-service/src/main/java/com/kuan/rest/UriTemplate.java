@@ -1,8 +1,6 @@
 package com.kuan.rest;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,15 +17,21 @@ interface UriTemplate {
 }
 
 class UriTemplateString implements UriTemplate {
-    private final Pattern variable = Pattern.compile("\\{\\w[\\w.-]*}");
-    private Pattern pattern;
+    private final Pattern variable = Pattern.compile("\\{(\\w[\\w.-]*)}");
+
+    private final Pattern pattern;
+
+    private final List<String> variables = new ArrayList<>();
 
     public UriTemplateString(String template) {
         pattern = Pattern.compile("(" + variable(template) + ")" + "(/.*)?");
     }
 
     private String variable(String template) {
-        return variable.matcher(template).replaceAll("([^/]+?)");
+        return variable.matcher(template).replaceAll(result -> {
+            variables.add(result.group(1));
+            return "([^/]+?)";
+        });
     }
 
     @Override
@@ -37,6 +41,12 @@ class UriTemplateString implements UriTemplate {
             return Optional.empty();
         }
         int count = matcher.groupCount();
+
+        Map<String, String> parameters = new HashMap<>();
+        for (int i = 0; i < variables.size(); i++) {
+            parameters.put(variables.get(i), matcher.group(2 + i));
+        }
+
         return Optional.of(new MatchResult() {
             @Override
             public String getMatched() {
@@ -50,7 +60,7 @@ class UriTemplateString implements UriTemplate {
 
             @Override
             public Map<String, String> getMatchedPathParameters() {
-                return new HashMap<>();
+                return parameters;
             }
 
             @Override
