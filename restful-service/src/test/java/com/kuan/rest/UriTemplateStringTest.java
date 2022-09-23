@@ -54,5 +54,13 @@ public class UriTemplateStringTest {
         assertTrue(template.match("/users/id").isEmpty());
     }
 
+    @Test
+    public void should_extract_variable_value_by_given_pattern() {
+        UriTemplateString template = new UriTemplateString("/users/{id:[0-9]+}");
+
+        UriTemplate.MatchResult result = template.match("/users/1").get();
+
+        assertEquals("1", result.getMatchedPathParameters().get("id"));
+    }
 
 }
