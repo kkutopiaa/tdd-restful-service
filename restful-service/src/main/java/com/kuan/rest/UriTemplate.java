@@ -46,9 +46,13 @@ class UriTemplateString implements UriTemplate {
 
     private String variable(String template) {
         return variable.matcher(template).replaceAll(result -> {
-            variables.add(result.group(variableNameGroup));
-            return result.group(variablePatternGroup) == null ? defaultVariablePattern
-                    : group(result.group(variablePatternGroup));
+            String variableName = result.group(variableNameGroup);
+            String pattern = result.group(variablePatternGroup);
+            if (variables.contains(variableName)) {
+                throw new IllegalArgumentException("duplicate variable " + variableName);
+            }
+            variables.add(variableName);
+            return pattern == null ? defaultVariablePattern : group(pattern);
         });
     }
 
