@@ -47,5 +47,12 @@ public class UriTemplateStringTest {
         assertEquals("1", result.getMatchedPathParameters().get("id"));
     }
 
+    @Test
+    public void should_return_empty_if_not_match_given_pattern() {
+        UriTemplateString template = new UriTemplateString("/users/{id:[0-9]+}");
+
+        assertTrue(template.match("/users/id").isEmpty());
+    }
+
 
 }
