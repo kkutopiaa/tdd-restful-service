@@ -25,13 +25,15 @@ class UriTemplateString implements UriTemplate {
 
     private final Pattern pattern;
     private final List<String> variables = new ArrayList<>();
+    private final int variableGroupStartFrom;
 
     private static String group(String pattern) {
         return "(" + pattern + ")";
     }
 
     public UriTemplateString(String template) {
-        pattern = Pattern.compile("(" + variable(template) + ")" + "(/.*)?");
+        pattern = Pattern.compile(group(variable(template)) + "(/.*)?");
+        variableGroupStartFrom = 2;
     }
 
     private String variable(String template) {
@@ -51,7 +53,7 @@ class UriTemplateString implements UriTemplate {
 
         Map<String, String> parameters = new HashMap<>();
         for (int i = 0; i < variables.size(); i++) {
-            parameters.put(variables.get(i), matcher.group(2 + i));
+            parameters.put(variables.get(i), matcher.group(variableGroupStartFrom + i));
         }
 
         return Optional.of(new MatchResult() {
