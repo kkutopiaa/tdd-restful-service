@@ -17,11 +17,18 @@ interface UriTemplate {
 }
 
 class UriTemplateString implements UriTemplate {
-    private final Pattern variable = Pattern.compile("\\{(\\w[\\w.-]*)}");
+
+    private static final String LEFT_BRACKET = "\\{";
+    private static final String RIGHT_BRACKET = "}";
+    private static final String VARIABLE_NAME = "\\w[\\w.-]*";
+    private static final Pattern variable = Pattern.compile(LEFT_BRACKET + group(VARIABLE_NAME) + RIGHT_BRACKET);
 
     private final Pattern pattern;
-
     private final List<String> variables = new ArrayList<>();
+
+    private static String group(String pattern) {
+        return "(" + pattern + ")";
+    }
 
     public UriTemplateString(String template) {
         pattern = Pattern.compile("(" + variable(template) + ")" + "(/.*)?");
