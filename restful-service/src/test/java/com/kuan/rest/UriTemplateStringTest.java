@@ -32,6 +32,7 @@ public class UriTemplateStringTest {
 
         assertEquals("/users", result.getMatched());
         assertEquals("/1", result.getRemaining());
+        assertTrue(result.getMatchedPathParameters().isEmpty());
     }
 
     @Test
@@ -42,6 +43,8 @@ public class UriTemplateStringTest {
 
         assertEquals("/users/1", result.getMatched());
         assertNull(result.getRemaining());
+        assertFalse(result.getMatchedPathParameters().isEmpty());
+        assertEquals("1", result.getMatchedPathParameters().get("id"));
     }
 
 

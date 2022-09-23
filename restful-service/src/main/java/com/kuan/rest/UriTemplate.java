@@ -1,5 +1,6 @@
 package com.kuan.rest;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -49,7 +50,7 @@ class UriTemplateString implements UriTemplate {
 
             @Override
             public Map<String, String> getMatchedPathParameters() {
-                return null;
+                return new HashMap<>();
             }
 
             @Override
