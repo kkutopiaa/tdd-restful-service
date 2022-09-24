@@ -62,33 +62,43 @@ class UriTemplateString implements UriTemplate {
         if (!matcher.matches()) {
             return Optional.empty();
         }
-        int count = matcher.groupCount();
+        return Optional.of(new PathMatchResult(matcher));
+    }
 
-        Map<String, String> parameters = new HashMap<>();
-        for (int i = 0; i < variables.size(); i++) {
-            parameters.put(variables.get(i), matcher.group(variableGroupStartFrom + i));
+    class PathMatchResult implements MatchResult {
+        private final Matcher matcher;
+        private final int count;
+        private final Map<String, String> parameters = new HashMap<>();
+
+        public PathMatchResult(Matcher matcher) {
+            this.matcher = matcher;
+            this.count = matcher.groupCount();
+
+            for (int i = 0; i < variables.size(); i++) {
+                parameters.put(variables.get(i), matcher.group(variableGroupStartFrom + i));
+            }
         }
 
-        return Optional.of(new MatchResult() {
-            @Override
-            public String getMatched() {
-                return matcher.group(variableNameGroup);
-            }
+        @Override
+        public String getMatched() {
+            return matcher.group(variableNameGroup);
+        }
 
-            @Override
-            public String getRemaining() {
-                return matcher.group(count);
-            }
+        @Override
+        public String getRemaining() {
+            return matcher.group(count);
+        }
 
-            @Override
-            public Map<String, String> getMatchedPathParameters() {
-                return parameters;
-            }
+        @Override
+        public Map<String, String> getMatchedPathParameters() {
+            return parameters;
+        }
 
-            @Override
-            public int compareTo(MatchResult o) {
-                return 0;
-            }
-        });
+        @Override
+        public int compareTo(MatchResult o) {
+            return 0;
+        }
     }
+
+
 }
