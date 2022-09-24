@@ -103,6 +103,9 @@ class UriTemplateString implements UriTemplate {
             if (this.matchLiteralCount > result.matchLiteralCount) {
                 return -1;
             }
+            if (this.parameters.size() > result.parameters.size()) {
+                return -1;
+            }
             return 0;
         }
     }
