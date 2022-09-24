@@ -68,4 +68,16 @@ public class UriTemplateStringTest {
         assertThrows(IllegalArgumentException.class, () -> new UriTemplateString("/users/{id:[0-9]+}/{id}"));
     }
 
+    @Test
+    public void should_compare_for_match_literal() {
+        String path = "/users/1234";
+        UriTemplateString smaller = new UriTemplateString("/users/1234");
+        UriTemplateString larger = new UriTemplateString("/users/{id}");
+
+        UriTemplate.MatchResult leftHeadSide = smaller.match(path).get();
+        UriTemplate.MatchResult rightHeadSide = larger.match(path).get();
+
+        assertTrue(leftHeadSide.compareTo(rightHeadSide) < 0);
+    }
+
 }
