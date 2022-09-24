@@ -66,6 +66,7 @@ class UriTemplateString implements UriTemplate {
     }
 
     class PathMatchResult implements MatchResult {
+        private int matchLiteralCount;
         private final Matcher matcher;
         private final int count;
         private final Map<String, String> parameters = new HashMap<>();
@@ -73,9 +74,11 @@ class UriTemplateString implements UriTemplate {
         public PathMatchResult(Matcher matcher) {
             this.matcher = matcher;
             this.count = matcher.groupCount();
+            this.matchLiteralCount = matcher.group(variableNameGroup).length();
 
             for (int i = 0; i < variables.size(); i++) {
                 parameters.put(variables.get(i), matcher.group(variableGroupStartFrom + i));
+                matchLiteralCount -= matcher.group(variableGroupStartFrom + i).length();
             }
         }
 
@@ -96,6 +99,10 @@ class UriTemplateString implements UriTemplate {
 
         @Override
         public int compareTo(MatchResult o) {
+            PathMatchResult result = (PathMatchResult) o;
+            if (this.matchLiteralCount > result.matchLiteralCount) {
+                return -1;
+            }
             return 0;
         }
     }
