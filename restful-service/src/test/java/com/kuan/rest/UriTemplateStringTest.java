@@ -98,5 +98,6 @@ public class UriTemplateStringTest {
         UriTemplate.MatchResult rightHeadSide = larger.match(path).get();
 
         assertTrue(leftHeadSide.compareTo(rightHeadSide) < 0);
+        assertTrue(rightHeadSide.compareTo(leftHeadSide) > 0);
     }
 }
