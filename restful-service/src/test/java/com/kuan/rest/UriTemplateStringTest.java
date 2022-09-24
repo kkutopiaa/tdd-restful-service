@@ -1,8 +1,5 @@
 package com.kuan.rest;
 
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -70,21 +67,19 @@ public class UriTemplateStringTest {
 
     @Test
     public void should_compare_for_match_literal() {
-        String path = "/users/1234";
-        UriTemplateString smaller = new UriTemplateString("/users/1234");
-        UriTemplateString larger = new UriTemplateString("/users/{id}");
-
-        UriTemplate.MatchResult leftHeadSide = smaller.match(path).get();
-        UriTemplate.MatchResult rightHeadSide = larger.match(path).get();
-
-        assertTrue(leftHeadSide.compareTo(rightHeadSide) < 0);
+        assertChosen("/users/1234", "/users/1234", "/users/{id}");
     }
 
     @Test
     public void should_compare_match_variables_if_matched_literal_equally() {
-        String path = "/users/1234567890/order";
-        UriTemplateString smaller = new UriTemplateString("/{resources}/1234567890/{action}");
-        UriTemplateString larger = new UriTemplateString("/users/{id}/order");
+        assertChosen("/users/1234567890/order",
+                "/{resources}/1234567890/{action}", "/users/{id}/order");
+
+    }
+
+    private static void assertChosen(String path, String smallerTemplate, String largerTemplate) {
+        UriTemplateString smaller = new UriTemplateString(smallerTemplate);
+        UriTemplateString larger = new UriTemplateString(largerTemplate);
 
         UriTemplate.MatchResult leftHeadSide = smaller.match(path).get();
         UriTemplate.MatchResult rightHeadSide = larger.match(path).get();
