@@ -80,4 +80,15 @@ public class UriTemplateStringTest {
         assertTrue(leftHeadSide.compareTo(rightHeadSide) < 0);
     }
 
+    @Test
+    public void should_compare_match_variables_if_matched_literal_equally() {
+        String path = "/users/1234567890/order";
+        UriTemplateString smaller = new UriTemplateString("/{resources}/1234567890/{action}");
+        UriTemplateString larger = new UriTemplateString("/users/{id}/order");
+
+        UriTemplate.MatchResult leftHeadSide = smaller.match(path).get();
+        UriTemplate.MatchResult rightHeadSide = larger.match(path).get();
+
+        assertTrue(leftHeadSide.compareTo(rightHeadSide) < 0);
+    }
 }
