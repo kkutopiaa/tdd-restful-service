@@ -77,6 +77,11 @@ public class UriTemplateStringTest {
 
     }
 
+    @Test
+    public void should_compare_specific_variable_if_matched_literal_variables_same() {
+        assertChosen("/users/1", "/users/{id:[0-9]+}", "/users/{id}");
+    }
+
     private static void assertChosen(String path, String smallerTemplate, String largerTemplate) {
         UriTemplateString smaller = new UriTemplateString(smallerTemplate);
         UriTemplateString larger = new UriTemplateString(largerTemplate);
