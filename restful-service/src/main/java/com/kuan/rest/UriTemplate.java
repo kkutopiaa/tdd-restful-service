@@ -33,6 +33,7 @@ class UriTemplateString implements UriTemplate {
     private final Pattern pattern;
     private final List<String> variables = new ArrayList<>();
     private final int variableGroupStartFrom;
+    private int specificPatternCount = 0;
 
 
     private static String group(String pattern) {
@@ -52,7 +53,12 @@ class UriTemplateString implements UriTemplate {
                 throw new IllegalArgumentException("duplicate variable " + variableName);
             }
             variables.add(variableName);
-            return pattern == null ? defaultVariablePattern : group(pattern);
+
+            if (pattern != null) {
+                specificPatternCount++;
+                return group(pattern);
+            }
+            return defaultVariablePattern;
         });
     }
 
@@ -66,6 +72,7 @@ class UriTemplateString implements UriTemplate {
     }
 
     class PathMatchResult implements MatchResult {
+        private final int specifiPatternCount;
         private int matchLiteralCount;
         private final Matcher matcher;
         private final int count;
@@ -75,6 +82,7 @@ class UriTemplateString implements UriTemplate {
             this.matcher = matcher;
             this.count = matcher.groupCount();
             this.matchLiteralCount = matcher.group(variableNameGroup).length();
+            this.specifiPatternCount = specificPatternCount;
 
             for (int i = 0; i < variables.size(); i++) {
                 parameters.put(variables.get(i), matcher.group(variableGroupStartFrom + i));
@@ -104,6 +112,9 @@ class UriTemplateString implements UriTemplate {
                 return -1;
             }
             if (this.parameters.size() > result.parameters.size()) {
+                return -1;
+            }
+            if (this.specifiPatternCount > result.specifiPatternCount) {
                 return -1;
             }
             return 0;
