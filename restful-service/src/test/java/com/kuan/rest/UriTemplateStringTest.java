@@ -82,6 +82,14 @@ public class UriTemplateStringTest {
         assertChosen("/users/1", "/users/{id:[0-9]+}", "/users/{id}");
     }
 
+    @Test
+    public void should_compare_equal_match_result() {
+        UriTemplateString template = new UriTemplateString("/users/{id}");
+        UriTemplate.MatchResult result = template.match("/users/1").get();
+
+        assertEquals(0, result.compareTo(result));
+    }
+
     private static void assertChosen(String path, String smallerTemplate, String largerTemplate) {
         UriTemplateString smaller = new UriTemplateString(smallerTemplate);
         UriTemplateString larger = new UriTemplateString(largerTemplate);
