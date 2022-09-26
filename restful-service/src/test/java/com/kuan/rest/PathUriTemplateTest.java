@@ -14,13 +14,11 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PathUriTemplateTest {
 
-    @Test
-    public void should_return_empty_if_path_not_matched() {
-        PathUriTemplate template = new PathUriTemplate("/users");
-
-        Optional<UriTemplate.MatchResult> result = template.match("/orders");
-
-        assertTrue(result.isEmpty());
+    @ParameterizedTest
+    @CsvSource({"/users,/orders", "/users/{id:[0-9]+},/users/id", "/users,/unit/users"})
+    public void should_not_match_path(String pattern, String path) {
+        PathUriTemplate template = new PathUriTemplate(pattern);
+        assertTrue(template.match(path).isEmpty());
     }
 
     @Test
@@ -46,12 +44,6 @@ public class PathUriTemplateTest {
         assertEquals("1", result.getMatchedPathParameters().get("id"));
     }
 
-    @Test
-    public void should_return_empty_if_not_match_given_pattern() {
-        PathUriTemplate template = new PathUriTemplate("/users/{id:[0-9]+}");
-
-        assertTrue(template.match("/users/id").isEmpty());
-    }
 
     @Test
     public void should_extract_variable_value_by_given_pattern() {
