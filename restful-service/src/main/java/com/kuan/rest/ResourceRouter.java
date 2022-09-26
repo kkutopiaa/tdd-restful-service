@@ -1,6 +1,7 @@
 package com.kuan.rest;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -87,12 +88,17 @@ class DefaultResourceRoot implements ResourceRouter {
 class RootResourceClass implements ResourceRouter.RootResource {
 
 
-    public RootResourceClass(Class<?> usersClass) {
+    private Class<?> resourceClass;
+    private UriTemplate uriTemplate;
 
+    public RootResourceClass(Class<?> resourceClass) {
+        this.resourceClass = resourceClass;
+        this.uriTemplate = new PathUriTemplate(resourceClass.getAnnotation(Path.class).value());
     }
 
     @Override
-    public Optional<ResourceRouter.ResourceMethod> match(String path, String method, String[] mediaTypes, UriInfoBuilder builder) {
+    public Optional<ResourceRouter.ResourceMethod> match(String path, String method, String[] mediaTypes,
+                                                         UriInfoBuilder builder) {
         return Optional.empty();
     }
 
@@ -102,6 +108,7 @@ class RootResourceClass implements ResourceRouter.RootResource {
         // 可预见的，随着 RootResource 的具体 case 越来越多，这里写的实现逻辑也越来越复杂，
         // 可以确定的是，最终一定会通过重构的方式，将这部分逻辑分离出去。
         // 所以，可以单独把 UriTemplate 抽出来做测试
-        return null;
+        return uriTemplate;
     }
+
 }
