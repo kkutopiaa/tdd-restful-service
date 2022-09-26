@@ -161,3 +161,17 @@ spike： 并不是把所有细节都理解完，目的是花最小的成本，�
     - 如果匹配的非参字符多，则优先（长的优先）
     - 如果匹配的非参数字符一样，匹配的分组多，则优先（参数优先）
     - 如果匹配的分组一样多，指定格式参数匹配多的优先（指定格式参数优先）
+
+---
+UriTemplate 完成了任务列表的开发后，细化一下 RootResource/Resource/ResourceMethod 的任务列表继续开发：  
+首先关注在请求派分的 Uri 匹配部分：
+- Resource/RootResource/ResourceMethod
+  - 从 Path 标注中获取 UriTemplate
+    - 如不存在 Path 标注，则抛出异常
+  - 在处理请求派分时，可以根据客户端提供的 Http 方法，选择对应的资源方法
+    - 当请求与资源方法的 Uri 模版一致，且 Http 方法一致时，派分到该方法
+    - 没有资源方法于请求的 Uri 和 Http 方法一致时，返回 404
+  - 在处理请求派分时，可以支持多级子资源
+    - 当没有资源方法可以匹配请求时，选择最优匹配 SubResourceLocator，通过它继续进行派分
+    - 如果 SubResourceLocator 也无法找到满足的请求时，返回 404视频
+
