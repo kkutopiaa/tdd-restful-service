@@ -1,6 +1,8 @@
 package com.kuan.rest;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.Optional;
 
@@ -66,23 +68,6 @@ public class PathUriTemplateTest {
     }
 
     @Test
-    public void should_compare_for_match_literal() {
-        assertChosen("/users/1234", "/users/1234", "/users/{id}");
-    }
-
-    @Test
-    public void should_compare_match_variables_if_matched_literal_equally() {
-        assertChosen("/users/1234567890/order",
-                "/{resources}/1234567890/{action}", "/users/{id}/order");
-
-    }
-
-    @Test
-    public void should_compare_specific_variable_if_matched_literal_variables_same() {
-        assertChosen("/users/1", "/users/{id:[0-9]+}", "/users/{id}");
-    }
-
-    @Test
     public void should_compare_equal_match_result() {
         PathUriTemplate template = new PathUriTemplate("/users/{id}");
         UriTemplate.MatchResult result = template.match("/users/1").get();
@@ -90,7 +75,11 @@ public class PathUriTemplateTest {
         assertEquals(0, result.compareTo(result));
     }
 
-    private static void assertChosen(String path, String smallerTemplate, String largerTemplate) {
+    @ParameterizedTest
+    @CsvSource({"/users/1234,/users/1234,/users/{id}",
+            "/users/1234567890/order,/{resources}/1234567890/{action},/users/{id}/order",
+            "/users/1,/users/{id:[0-9]+},/users/{id}"})
+    public void first_pattern_should_be_smaller_than_second(String path, String smallerTemplate, String largerTemplate) {
         PathUriTemplate smaller = new PathUriTemplate(smallerTemplate);
         PathUriTemplate larger = new PathUriTemplate(largerTemplate);
 
