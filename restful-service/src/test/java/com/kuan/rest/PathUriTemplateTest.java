@@ -10,11 +10,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * @Author: qxkk
  * @Date: 2022/9/22
  */
-public class UriTemplateStringTest {
+public class PathUriTemplateTest {
 
     @Test
     public void should_return_empty_if_path_not_matched() {
-        UriTemplateString template = new UriTemplateString("/users");
+        PathUriTemplate template = new PathUriTemplate("/users");
 
         Optional<UriTemplate.MatchResult> result = template.match("/orders");
 
@@ -23,7 +23,7 @@ public class UriTemplateStringTest {
 
     @Test
     public void should_return_match_result_if_path_matched() {
-        UriTemplateString template = new UriTemplateString("/users");
+        PathUriTemplate template = new PathUriTemplate("/users");
 
         UriTemplate.MatchResult result = template.match("/users/1").get();
 
@@ -34,7 +34,7 @@ public class UriTemplateStringTest {
 
     @Test
     public void should_return_match_result_if_path_with_variable_matched() {
-        UriTemplateString template = new UriTemplateString("/users/{id}");
+        PathUriTemplate template = new PathUriTemplate("/users/{id}");
 
         UriTemplate.MatchResult result = template.match("/users/1").get();
 
@@ -46,14 +46,14 @@ public class UriTemplateStringTest {
 
     @Test
     public void should_return_empty_if_not_match_given_pattern() {
-        UriTemplateString template = new UriTemplateString("/users/{id:[0-9]+}");
+        PathUriTemplate template = new PathUriTemplate("/users/{id:[0-9]+}");
 
         assertTrue(template.match("/users/id").isEmpty());
     }
 
     @Test
     public void should_extract_variable_value_by_given_pattern() {
-        UriTemplateString template = new UriTemplateString("/users/{id:[0-9]+}");
+        PathUriTemplate template = new PathUriTemplate("/users/{id:[0-9]+}");
 
         UriTemplate.MatchResult result = template.match("/users/1").get();
 
@@ -62,7 +62,7 @@ public class UriTemplateStringTest {
 
     @Test
     public void should_throw_illegal_argument_exception_if_variable_redefined() {
-        assertThrows(IllegalArgumentException.class, () -> new UriTemplateString("/users/{id:[0-9]+}/{id}"));
+        assertThrows(IllegalArgumentException.class, () -> new PathUriTemplate("/users/{id:[0-9]+}/{id}"));
     }
 
     @Test
@@ -84,15 +84,15 @@ public class UriTemplateStringTest {
 
     @Test
     public void should_compare_equal_match_result() {
-        UriTemplateString template = new UriTemplateString("/users/{id}");
+        PathUriTemplate template = new PathUriTemplate("/users/{id}");
         UriTemplate.MatchResult result = template.match("/users/1").get();
 
         assertEquals(0, result.compareTo(result));
     }
 
     private static void assertChosen(String path, String smallerTemplate, String largerTemplate) {
-        UriTemplateString smaller = new UriTemplateString(smallerTemplate);
-        UriTemplateString larger = new UriTemplateString(largerTemplate);
+        PathUriTemplate smaller = new PathUriTemplate(smallerTemplate);
+        PathUriTemplate larger = new PathUriTemplate(largerTemplate);
 
         UriTemplate.MatchResult leftHeadSide = smaller.match(path).get();
         UriTemplate.MatchResult rightHeadSide = larger.match(path).get();

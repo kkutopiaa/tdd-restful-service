@@ -16,7 +16,7 @@ interface UriTemplate {
     Optional<MatchResult> match(String path);
 }
 
-class UriTemplateString implements UriTemplate {
+class PathUriTemplate implements UriTemplate {
 
     private static final String LEFT_BRACKET = "\\{";
     private static final String RIGHT_BRACKET = "}";
@@ -40,7 +40,7 @@ class UriTemplateString implements UriTemplate {
         return "(" + pattern + ")";
     }
 
-    public UriTemplateString(String template) {
+    public PathUriTemplate(String template) {
         pattern = Pattern.compile(group(variable(template)) + "(/.*)?");
         variableGroupStartFrom = 2;
     }
@@ -72,7 +72,7 @@ class UriTemplateString implements UriTemplate {
     }
 
     class PathMatchResult implements MatchResult {
-        private final int specifiPatternCount;
+        private final int specificPatternCount;
         private int matchLiteralCount;
         private final Matcher matcher;
         private final int count;
@@ -82,7 +82,7 @@ class UriTemplateString implements UriTemplate {
             this.matcher = matcher;
             this.count = matcher.groupCount();
             this.matchLiteralCount = matcher.group(variableNameGroup).length();
-            this.specifiPatternCount = specificPatternCount;
+            this.specificPatternCount = PathUriTemplate.this.specificPatternCount;
 
             for (int i = 0; i < variables.size(); i++) {
                 parameters.put(variables.get(i), matcher.group(variableGroupStartFrom + i));
@@ -120,10 +120,10 @@ class UriTemplateString implements UriTemplate {
             if (this.parameters.size() < result.parameters.size()) {
                 return 1;
             }
-            if (this.specifiPatternCount > result.specifiPatternCount) {
+            if (this.specificPatternCount > result.specificPatternCount) {
                 return -1;
             }
-            if (this.specifiPatternCount < result.specifiPatternCount) {
+            if (this.specificPatternCount < result.specificPatternCount) {
                 return 1;
             }
             return 0;
