@@ -5,6 +5,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
 
 import java.util.Optional;
@@ -26,18 +28,25 @@ public class RootResourceTest {
         assertTrue(template.match("/messages/hello").isPresent());
     }
 
-    @Test
-    public void should_match_resource_method_if_uri_and_http_method_fully_matched() {
+    @ParameterizedTest
+    @CsvSource({"/messages/hello,GET,Messages.hello", "/messages/ah,GET,Messages.ah"})
+    public void should_match_resource_method_if_uri_and_http_method_fully_matched(String path, String httpMethod,
+                                                                                  String resourceMethod) {
         ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
-
-        ResourceRouter.ResourceMethod method = resource.match("/messages/hello", "GET",
+        ResourceRouter.ResourceMethod method = resource.match(path, httpMethod,
                 new String[]{MediaType.TEXT_PLAIN}, Mockito.mock(UriInfoBuilder.class)).get();
-        assertEquals("Messages.hello", method.toString());
+        assertEquals(resourceMethod, method.toString());
     }
 
 
     @Path("/messages")
     static class Messages {
+        @GET
+        @Path("/ah")
+        @Produces(MediaType.TEXT_PLAIN)
+        public String ah() {
+            return "ah";
+        }
 
         @GET
         @Path("/hello")
