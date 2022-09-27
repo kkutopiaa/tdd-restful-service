@@ -27,6 +27,8 @@ public interface ResourceRouter {
     }
 
     interface ResourceMethod {
+        UriTemplate getUriTemplate();
+
         GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
@@ -90,7 +92,6 @@ class DefaultResourceRoot implements ResourceRouter {
 
 class RootResourceClass implements ResourceRouter.RootResource {
 
-
     private Class<?> resourceClass;
     private UriTemplate uriTemplate;
 
@@ -110,7 +111,13 @@ class RootResourceClass implements ResourceRouter.RootResource {
     @Override
     public Optional<ResourceRouter.ResourceMethod> match(String path, String method, String[] mediaTypes,
                                                          UriInfoBuilder builder) {
-        return this.resourceMethods.stream().findFirst();
+        UriTemplate.MatchResult result = uriTemplate.match(path).get();
+        String remaining = result.getRemaining();
+        return resourceMethods.stream()
+                .filter(m -> m.getUriTemplate().match(remaining)
+                        .map(r -> r.getRemaining() == null)
+                        .orElse(false))
+                .findFirst();
     }
 
     @Override
@@ -125,11 +132,17 @@ class RootResourceClass implements ResourceRouter.RootResource {
 
     static class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
+        private UriTemplate uriTemplate;
         private Method method;
 
         public DefaultResourceMethod(Method method) {
-
             this.method = method;
+            this.uriTemplate = new PathUriTemplate(method.getAnnotation(Path.class).value());
+        }
+
+        @Override
+        public UriTemplate getUriTemplate() {
+            return uriTemplate;
         }
 
         @Override
