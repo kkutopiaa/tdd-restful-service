@@ -9,10 +9,8 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public interface ResourceRouter {
 
@@ -27,6 +25,8 @@ public interface ResourceRouter {
     }
 
     interface ResourceMethod {
+        String getHttpMethod();
+
         UriTemplate getUriTemplate();
 
         GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder);
@@ -95,7 +95,7 @@ class RootResourceClass implements ResourceRouter.RootResource {
     private Class<?> resourceClass;
     private UriTemplate uriTemplate;
 
-    private List<ResourceRouter.ResourceMethod> resourceMethods;
+    private Map<String, List<ResourceRouter.ResourceMethod>> resourceMethods;
 
     public RootResourceClass(Class<?> resourceClass) {
         this.resourceClass = resourceClass;
@@ -104,7 +104,9 @@ class RootResourceClass implements ResourceRouter.RootResource {
         this.resourceMethods = Arrays.stream(resourceClass.getMethods())
                 .filter(m -> Arrays.stream(m.getAnnotations())
                         .anyMatch(a -> a.annotationType().isAnnotationPresent(HttpMethod.class)))
-                .map(m -> (ResourceRouter.ResourceMethod) new DefaultResourceMethod(m)).toList();
+                .map(m -> (ResourceRouter.ResourceMethod) new DefaultResourceMethod(m))
+                .collect(Collectors.groupingBy(ResourceRouter.ResourceMethod::getHttpMethod));
+
 
     }
 
@@ -113,7 +115,7 @@ class RootResourceClass implements ResourceRouter.RootResource {
                                                          UriInfoBuilder builder) {
         UriTemplate.MatchResult result = uriTemplate.match(path).get();
         String remaining = result.getRemaining();
-        return resourceMethods.stream()
+        return resourceMethods.get(method).stream()
                 .filter(m -> m.getUriTemplate().match(remaining)
                         .map(r -> r.getRemaining() == null)
                         .orElse(false))
@@ -132,12 +134,22 @@ class RootResourceClass implements ResourceRouter.RootResource {
 
     static class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
+        private String httpMethod;
         private UriTemplate uriTemplate;
         private Method method;
 
         public DefaultResourceMethod(Method method) {
             this.method = method;
             this.uriTemplate = new PathUriTemplate(method.getAnnotation(Path.class).value());
+            this.httpMethod = Arrays.stream(method.getAnnotations())
+                    .filter(a -> a.annotationType().isAnnotationPresent(HttpMethod.class))
+                    .findFirst()
+                    .get().annotationType().getAnnotation(HttpMethod.class).value();
+        }
+
+        @Override
+        public String getHttpMethod() {
+            return httpMethod;
         }
 
         @Override
