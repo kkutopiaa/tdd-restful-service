@@ -1,6 +1,7 @@
 package com.kuan.rest;
 
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
@@ -8,8 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,7 +28,8 @@ public class RootResourceTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"/messages/hello,GET,Messages.hello", "/messages/ah,GET,Messages.ah"})
+    @CsvSource({"/messages/hello,GET,Messages.hello", "/messages/ah,GET,Messages.ah",
+            "/messages/hello,POST,Messages.postHello"})
     public void should_match_resource_method_if_uri_and_http_method_fully_matched(String path, String httpMethod,
                                                                                   String resourceMethod) {
         ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
@@ -55,6 +55,12 @@ public class RootResourceTest {
             return "hello";
         }
 
+        @POST
+        @Path("/hello")
+        @Produces(MediaType.TEXT_PLAIN)
+        public String postHello() {
+            return "hello";
+        }
     }
 
 }
