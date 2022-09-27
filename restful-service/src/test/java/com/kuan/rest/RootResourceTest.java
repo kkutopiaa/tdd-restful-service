@@ -5,6 +5,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -20,6 +23,15 @@ public class RootResourceTest {
         ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
         UriTemplate template = resource.getUriTemplate();
         assertTrue(template.match("/messages/hello").isPresent());
+    }
+
+    @Test
+    public void should_match_resource_method_if_uri_and_http_method_fully_matched() {
+        ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
+
+        Optional<ResourceRouter.ResourceMethod> get = resource.match("/messages/hello", "GET",
+                new String[]{MediaType.TEXT_PLAIN}, Mockito.mock(UriInfoBuilder.class));
+        assertTrue(get.isPresent());
     }
 
 
