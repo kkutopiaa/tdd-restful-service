@@ -99,7 +99,7 @@ class RootResourceClass implements ResourceRouter.RootResource {
     @Override
     public Optional<ResourceRouter.ResourceMethod> match(String path, String method, String[] mediaTypes,
                                                          UriInfoBuilder builder) {
-        return Optional.empty();
+        return Optional.of(new DefaultResourceMethod());
     }
 
     @Override
@@ -109,6 +109,15 @@ class RootResourceClass implements ResourceRouter.RootResource {
         // 可以确定的是，最终一定会通过重构的方式，将这部分逻辑分离出去。
         // 所以，可以单独把 UriTemplate 抽出来做测试
         return uriTemplate;
+    }
+
+
+    static class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
+
+        @Override
+        public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
+            return null;
+        }
     }
 
 }
