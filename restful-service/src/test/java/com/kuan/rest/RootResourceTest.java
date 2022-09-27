@@ -9,6 +9,7 @@ import org.mockito.Mockito;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -29,9 +30,9 @@ public class RootResourceTest {
     public void should_match_resource_method_if_uri_and_http_method_fully_matched() {
         ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
 
-        Optional<ResourceRouter.ResourceMethod> get = resource.match("/messages/hello", "GET",
-                new String[]{MediaType.TEXT_PLAIN}, Mockito.mock(UriInfoBuilder.class));
-        assertTrue(get.isPresent());
+        ResourceRouter.ResourceMethod method = resource.match("/messages/hello", "GET",
+                new String[]{MediaType.TEXT_PLAIN}, Mockito.mock(UriInfoBuilder.class)).get();
+        assertEquals("Messages.hello", method.toString());
     }
 
 
