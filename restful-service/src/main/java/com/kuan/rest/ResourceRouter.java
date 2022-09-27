@@ -116,10 +116,11 @@ class RootResourceClass implements ResourceRouter.RootResource {
         UriTemplate.MatchResult result = uriTemplate.match(path).get();
         String remaining = result.getRemaining();
         return resourceMethods.get(method).stream()
-                .filter(m -> m.getUriTemplate().match(remaining)
-                        .map(r -> r.getRemaining() == null)
-                        .orElse(false))
-                .findFirst();
+                .map(m -> match(remaining, m))
+                .filter(Result::isMatched)
+                .sorted().findFirst()
+                .map(Result::resourceMethod);
+
     }
 
     @Override
@@ -129,6 +130,24 @@ class RootResourceClass implements ResourceRouter.RootResource {
         // 可以确定的是，最终一定会通过重构的方式，将这部分逻辑分离出去。
         // 所以，可以单独把 UriTemplate 抽出来做测试
         return uriTemplate;
+    }
+
+
+    private Result match(String path, ResourceRouter.ResourceMethod method) {
+        return new Result(method.getUriTemplate().match(path), method);
+    }
+
+    record Result(Optional<UriTemplate.MatchResult> matched,
+                  ResourceRouter.ResourceMethod resourceMethod) implements Comparable<Result> {
+
+        public boolean isMatched() {
+            return matched.map(r -> r.getRemaining() == null).orElse(false);
+        }
+
+        @Override
+        public int compareTo(Result o) {
+            return matched.flatMap(x -> o.matched.map(x::compareTo)).orElse(0);
+        }
     }
 
 
