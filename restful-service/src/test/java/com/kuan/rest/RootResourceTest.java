@@ -29,7 +29,8 @@ public class RootResourceTest {
 
     @ParameterizedTest
     @CsvSource({"/messages/hello,GET,Messages.hello", "/messages/ah,GET,Messages.ah",
-            "/messages/hello,POST,Messages.postHello", "/messages/topics/1234,GET,Messages.topic1234"})
+            "/messages/hello,POST,Messages.postHello", "/messages/topics/1234,GET,Messages.topic1234",
+            "/messages,GET,Messages.get"})
     public void should_match_resource_method_if_uri_and_http_method_fully_matched(String path, String httpMethod,
                                                                                   String resourceMethod) {
         ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
@@ -42,6 +43,13 @@ public class RootResourceTest {
 
     @Path("/messages")
     static class Messages {
+
+        @GET
+        @Produces(MediaType.TEXT_PLAIN)
+        public String get() {
+            return "messages";
+        }
+
         @GET
         @Path("/ah")
         @Produces(MediaType.TEXT_PLAIN)
