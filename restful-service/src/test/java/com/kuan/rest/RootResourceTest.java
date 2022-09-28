@@ -1,9 +1,6 @@
 package com.kuan.rest;
 
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,7 +27,9 @@ public class RootResourceTest {
     @ParameterizedTest
     @CsvSource({"/messages/hello,GET,Messages.hello", "/messages/ah,GET,Messages.ah",
             "/messages/hello,POST,Messages.postHello", "/messages/topics/1234,GET,Messages.topic1234",
-            "/messages,GET,Messages.get"})
+            "/messages,GET,Messages.get", "/messages/hello,PUT,Messages.putHello",
+            "/messages/hello,DELETE,Messages.deleteHello","/messages/hello,PATCH,Messages.patchHello",
+            "/messages/hello,HEAD,Messages.headHello","/messages/hello,OPTIONS,Messages.optionsHello"})
     public void should_match_resource_method_if_uri_and_http_method_fully_matched(String path, String httpMethod,
                                                                                   String resourceMethod) {
         ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
@@ -69,6 +68,41 @@ public class RootResourceTest {
         @Produces(MediaType.TEXT_PLAIN)
         public String postHello() {
             return "postHello";
+        }
+
+        @PUT
+        @Path("/hello")
+        @Produces(MediaType.TEXT_PLAIN)
+        public String putHello() {
+            return "Hello";
+        }
+
+        @DELETE
+        @Path("/hello")
+        @Produces(MediaType.TEXT_PLAIN)
+        public String deleteHello() {
+            return "Hello";
+        }
+
+        @HEAD
+        @Path("/hello")
+        @Produces(MediaType.TEXT_PLAIN)
+        public String headHello() {
+            return "Hello";
+        }
+
+        @OPTIONS
+        @Path("/hello")
+        @Produces(MediaType.TEXT_PLAIN)
+        public String optionsHello() {
+            return "Hello";
+        }
+
+        @PATCH
+        @Path("/hello")
+        @Produces(MediaType.TEXT_PLAIN)
+        public String patchHello() {
+            return "Hello";
         }
 
         @GET
