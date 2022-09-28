@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class RootResourceTest {
 
-
     @Test
     public void should_get_uri_template_from_path_annotation() {
         ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
@@ -24,21 +23,26 @@ public class RootResourceTest {
         assertTrue(template.match("/messages/hello").isPresent());
     }
 
-    @ParameterizedTest
-    @CsvSource({"/messages/hello,GET,Messages.hello", "/messages/ah,GET,Messages.ah",
-            "/messages/hello,POST,Messages.postHello", "/messages/topics/1234,GET,Messages.topic1234",
-            "/messages,GET,Messages.get", "/messages/hello,PUT,Messages.putHello",
-            "/messages/hello,DELETE,Messages.deleteHello","/messages/hello,PATCH,Messages.patchHello",
-            "/messages/hello,HEAD,Messages.headHello","/messages/hello,OPTIONS,Messages.optionsHello"})
-    public void should_match_resource_method_if_uri_and_http_method_fully_matched(String path, String httpMethod,
-                                                                                  String resourceMethod) {
+    @ParameterizedTest(name = "{3}")
+    @CsvSource(textBlock = """
+            /messages/hello,       GET,        Messages.hello,          GET and URI match
+            /messages/ah,          GET,        Messages.ah,             GET and URI match
+            /messages/hello,       POST,       Messages.postHello,      POST and URI match
+            /messages/hello,       PUT,        Messages.putHello,       PUT and URI match
+            /messages/hello,       DELETE,     Messages.deleteHello,    DELETE and URI match
+            /messages/hello,       PATCH,      Messages.patchHello,     PATCH and URI match
+            /messages/hello,       HEAD,       Messages.headHello,      HEAD and URI match
+            /messages/hello,       OPTIONS,    Messages.optionsHello,   OPTIONS and URI match
+            /messages/topics/1234, GET,        Messages.topic1234,      GET with multiply choices
+            /messages,             GET,        Messages.get,            GET with resource method without Path
+            """)
+    public void should_match_resource_method(String path, String httpMethod, String resourceMethod, String context) {
         ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
         UriTemplate.MatchResult result = resource.getUriTemplate().match(path).get();
         ResourceRouter.ResourceMethod method = resource.match(result, httpMethod,
                 new String[]{MediaType.TEXT_PLAIN}, Mockito.mock(UriInfoBuilder.class)).get();
         assertEquals(resourceMethod, method.toString());
     }
-
 
     @Path("/messages")
     static class Messages {
@@ -111,6 +115,7 @@ public class RootResourceTest {
         public String topicId() {
             return "topicId";
         }
+
         @GET
         @Path("/topics/1234")
         @Produces(MediaType.TEXT_PLAIN)
