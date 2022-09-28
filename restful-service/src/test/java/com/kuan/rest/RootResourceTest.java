@@ -44,13 +44,14 @@ public class RootResourceTest {
         assertEquals(resourceMethod, method.toString());
     }
 
-
-    @Test
-    public void should_return_empty_if_uri_not_match() {
+    @ParameterizedTest(name = "{2}")
+    @CsvSource(textBlock = """
+            /missing-messages/1,      GET,      URI not matched
+            """)
+    public void should_return_empty_if_not_matched(String uri, String httpMethod, String context) {
         ResourceRouter.RootResource resource = new RootResourceClass(MissingMessages.class);
-        UriTemplate.MatchResult result = resource.getUriTemplate().match("/missing-messages/1").get();
-
-        assertTrue(resource.match(result, "GET", new String[]{MediaType.TEXT_PLAIN},
+        UriTemplate.MatchResult result = resource.getUriTemplate().match(uri).get();
+        assertTrue(resource.match(result, httpMethod, new String[]{MediaType.TEXT_PLAIN},
                         Mockito.mock(UriInfoBuilder.class))
                 .isEmpty());
     }
