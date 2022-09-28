@@ -113,7 +113,7 @@ class RootResourceClass implements ResourceRouter.RootResource {
     @Override
     public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method, String[] mediaTypes,
                                                          UriInfoBuilder builder) {
-        String remaining = result.getRemaining();
+        String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
         return resourceMethods.get(method).stream()
                 .map(m -> match(remaining, m))
                 .filter(Result::isMatched)
@@ -158,7 +158,11 @@ class RootResourceClass implements ResourceRouter.RootResource {
 
         public DefaultResourceMethod(Method method) {
             this.method = method;
-            this.uriTemplate = new PathUriTemplate(method.getAnnotation(Path.class).value());
+            this.uriTemplate = new PathUriTemplate(
+                    Optional.ofNullable(method.getAnnotation(Path.class))
+                            .map(Path::value)
+                            .orElse("")
+            );
             this.httpMethod = Arrays.stream(method.getAnnotations())
                     .filter(a -> a.annotationType().isAnnotationPresent(HttpMethod.class))
                     .findFirst()
