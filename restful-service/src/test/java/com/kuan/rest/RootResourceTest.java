@@ -44,6 +44,28 @@ public class RootResourceTest {
         assertEquals(resourceMethod, method.toString());
     }
 
+
+    @Test
+    public void should_return_empty_if_uri_not_match() {
+        ResourceRouter.RootResource resource = new RootResourceClass(MissingMessages.class);
+        UriTemplate.MatchResult result = resource.getUriTemplate().match("/missing-messages/1").get();
+
+        assertTrue(resource.match(result, "GET", new String[]{MediaType.TEXT_PLAIN},
+                        Mockito.mock(UriInfoBuilder.class))
+                .isEmpty());
+    }
+
+    @Path("/missing-messages")
+    static class MissingMessages {
+
+        @GET
+        @Produces(MediaType.TEXT_PLAIN)
+        public String get() {
+            return "/messages";
+        }
+
+    }
+
     @Path("/messages")
     static class Messages {
 
