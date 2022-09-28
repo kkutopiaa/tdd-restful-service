@@ -17,7 +17,7 @@ public interface ResourceRouter {
     OutboundResponse dispatch(HttpServletRequest request, ResourceContext resourceContext);
 
     interface Resource {
-        Optional<ResourceMethod> match(String path, String method, String[] mediaTypes, UriInfoBuilder builder);
+        Optional<ResourceMethod> match(UriTemplate.MatchResult result, String method, String[] mediaTypes, UriInfoBuilder builder);
     }
 
     interface RootResource extends Resource {
@@ -81,7 +81,7 @@ class DefaultResourceRoot implements ResourceRouter {
         }
 
         private Optional<ResourceMethod> findResourceMethod(HttpServletRequest request, UriInfoBuilder uriInfoBuilder) {
-            return matched.flatMap(result -> resource.match(result.getRemaining(), request.getMethod(),
+            return matched.flatMap(result -> resource.match(result, request.getMethod(),
                     Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder));
         }
     }
@@ -111,9 +111,8 @@ class RootResourceClass implements ResourceRouter.RootResource {
     }
 
     @Override
-    public Optional<ResourceRouter.ResourceMethod> match(String path, String method, String[] mediaTypes,
+    public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method, String[] mediaTypes,
                                                          UriInfoBuilder builder) {
-        UriTemplate.MatchResult result = uriTemplate.match(path).get();
         String remaining = result.getRemaining();
         return resourceMethods.get(method).stream()
                 .map(m -> match(remaining, m))

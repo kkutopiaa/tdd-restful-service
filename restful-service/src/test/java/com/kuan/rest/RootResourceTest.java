@@ -33,7 +33,8 @@ public class RootResourceTest {
     public void should_match_resource_method_if_uri_and_http_method_fully_matched(String path, String httpMethod,
                                                                                   String resourceMethod) {
         ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
-        ResourceRouter.ResourceMethod method = resource.match(path, httpMethod,
+        UriTemplate.MatchResult result = resource.getUriTemplate().match(path).get();
+        ResourceRouter.ResourceMethod method = resource.match(result, httpMethod,
                 new String[]{MediaType.TEXT_PLAIN}, Mockito.mock(UriInfoBuilder.class)).get();
         assertEquals(resourceMethod, method.toString());
     }
