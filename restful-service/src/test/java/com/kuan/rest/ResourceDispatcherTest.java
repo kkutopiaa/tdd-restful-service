@@ -81,7 +81,7 @@ public class ResourceDispatcherTest {
     @Test
     public void should_return_404_if_no_resource_method_found() {
         ResourceRouter router = new DefaultResourceRoot(runtime,
-                List.of(rootResource(matched("/users/1", result("/1")))));
+                List.of(rootResource(matched2("/users/1", result("/1")))));
         OutboundResponse response = router.dispatch(request, context);
         assertNull(response.getGenericEntity());
         assertEquals(404, response.getStatus());
@@ -101,6 +101,15 @@ public class ResourceDispatcherTest {
         when(unmatched.getUriTemplate()).thenReturn(unmatchedUriTemplate);
         // todo stub for any()
         when(unmatched.match(any(), eq("GET"), eq(new String[]{MediaType.WILDCARD}), eq(builder)))
+                .thenReturn(Optional.empty());
+        return unmatched;
+    }
+
+    private ResourceRouter.RootResource rootResource(StubUriTemplate stub) {
+        ResourceRouter.RootResource unmatched = mock(ResourceRouter.RootResource.class);
+        when(unmatched.getUriTemplate()).thenReturn(stub.uriTemplate);
+        // todo stub for any()
+        when(unmatched.match(same(stub.result), eq("GET"), eq(new String[]{MediaType.WILDCARD}), eq(builder)))
                 .thenReturn(Optional.empty());
         return unmatched;
     }
