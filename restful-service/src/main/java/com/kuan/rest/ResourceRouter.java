@@ -114,12 +114,12 @@ class RootResourceClass implements ResourceRouter.RootResource {
     public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method, String[] mediaTypes,
                                                          UriInfoBuilder builder) {
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
-        return resourceMethods.get(method).stream()
-                .map(m -> match(remaining, m))
-                .filter(Result::isMatched)
-                .sorted().findFirst()
-                .map(Result::resourceMethod);
-
+        return Optional.ofNullable(resourceMethods.get(method))
+                .flatMap(methods -> methods.stream()
+                        .map(m -> match(remaining, m))
+                        .filter(Result::isMatched)
+                        .sorted().findFirst()
+                        .map(Result::resourceMethod));
     }
 
     @Override
