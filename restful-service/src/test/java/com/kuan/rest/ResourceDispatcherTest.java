@@ -50,7 +50,7 @@ public class ResourceDispatcherTest {
         GenericEntity entity = new GenericEntity("matched", String.class);
 
         ResourceRouter router = new DefaultResourceRoot(runtime, List.of(
-                rootResource(matched2("/users/1", result("/1")), returns(entity)),
+                rootResource(matched("/users/1", result("/1")), returns(entity)),
                 rootResource(unmatched("/users/1"))));
         OutboundResponse response = router.dispatch(request, context);
         assertSame(entity, response.getGenericEntity());
@@ -63,8 +63,8 @@ public class ResourceDispatcherTest {
         GenericEntity entity2 = new GenericEntity("2", String.class);
 
         ResourceRouter router = new DefaultResourceRoot(runtime, List.of(
-                rootResource(matched2("/users/1", result("/1", 2)), returns(entity2)),
-                rootResource(matched2("/users/1", result("/1", 1)), returns(entity1))));
+                rootResource(matched("/users/1", result("/1", 2)), returns(entity2)),
+                rootResource(matched("/users/1", result("/1", 1)), returns(entity1))));
         OutboundResponse response = router.dispatch(request, context);
         assertSame(entity1, response.getGenericEntity());
         assertEquals(200, response.getStatus());
@@ -81,7 +81,7 @@ public class ResourceDispatcherTest {
     @Test
     public void should_return_404_if_no_resource_method_found() {
         ResourceRouter router = new DefaultResourceRoot(runtime,
-                List.of(rootResource(matched2("/users/1", result("/1")))));
+                List.of(rootResource(matched("/users/1", result("/1")))));
         OutboundResponse response = router.dispatch(request, context);
         assertNull(response.getGenericEntity());
         assertEquals(404, response.getStatus());
@@ -90,7 +90,7 @@ public class ResourceDispatcherTest {
     @Test
     public void should_return_204_if_method_return_null() {
         ResourceRouter router = new DefaultResourceRoot(runtime,
-                List.of(rootResource(matched2("/users/1", result("/1")), returns(null))));
+                List.of(rootResource(matched("/users/1", result("/1")), returns(null))));
         OutboundResponse response = router.dispatch(request, context);
         assertNull(response.getGenericEntity());
         assertEquals(204, response.getStatus());
@@ -134,13 +134,7 @@ public class ResourceDispatcherTest {
         return method;
     }
 
-    private UriTemplate matched(String path, UriTemplate.MatchResult result) {
-        UriTemplate matchedUriTemplate = mock(UriTemplate.class);
-        when(matchedUriTemplate.match(eq(path))).thenReturn(Optional.of(result));
-        return matchedUriTemplate;
-    }
-
-    private StubUriTemplate matched2(String path, UriTemplate.MatchResult result) {
+    private StubUriTemplate matched(String path, UriTemplate.MatchResult result) {
         UriTemplate matchedUriTemplate = mock(UriTemplate.class);
         when(matchedUriTemplate.match(eq(path))).thenReturn(Optional.of(result));
         return new StubUriTemplate(matchedUriTemplate, result);
