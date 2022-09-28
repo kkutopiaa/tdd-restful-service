@@ -111,15 +111,6 @@ public class ResourceDispatcherTest {
         return unmatchedUriTemplate;
     }
 
-    private ResourceRouter.RootResource rootResource(UriTemplate matchedUriTemplate, ResourceRouter.ResourceMethod method) {
-        ResourceRouter.RootResource matched = mock(ResourceRouter.RootResource.class);
-        when(matched.getUriTemplate()).thenReturn(matchedUriTemplate);
-        // todo stub for any()
-        when(matched.match(any(), eq("GET"), eq(new String[]{MediaType.WILDCARD}), eq(builder)))
-                .thenReturn(Optional.of(method));
-        return matched;
-    }
-
     private ResourceRouter.RootResource rootResource(StubUriTemplate stub, ResourceRouter.ResourceMethod method) {
         ResourceRouter.RootResource matched = mock(ResourceRouter.RootResource.class);
         when(matched.getUriTemplate()).thenReturn(stub.uriTemplate);
