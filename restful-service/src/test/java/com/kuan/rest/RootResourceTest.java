@@ -47,6 +47,7 @@ public class RootResourceTest {
     @ParameterizedTest(name = "{2}")
     @CsvSource(textBlock = """
             /missing-messages/1,      GET,      URI not matched
+            /missing-messages,        POST,     Http method not matched
             """)
     public void should_return_empty_if_not_matched(String uri, String httpMethod, String context) {
         ResourceRouter.RootResource resource = new RootResourceClass(MissingMessages.class);
