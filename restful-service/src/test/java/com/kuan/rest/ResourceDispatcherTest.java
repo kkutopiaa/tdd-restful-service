@@ -51,7 +51,7 @@ public class ResourceDispatcherTest {
 
         ResourceRouter router = new DefaultResourceRoot(runtime, List.of(
                 rootResource(matched("/users/1", result("/1")), returns(entity)),
-                rootResource(unmatched2("/users/1"))));
+                rootResource(unmatched("/users/1"))));
         OutboundResponse response = router.dispatch(request, context);
         assertSame(entity, response.getGenericEntity());
         assertEquals(200, response.getStatus());
@@ -72,7 +72,7 @@ public class ResourceDispatcherTest {
 
     @Test
     public void should_return_404_if_no_root_resource_matched() {
-        ResourceRouter router = new DefaultResourceRoot(runtime, List.of(rootResource(unmatched2("/users/1"))));
+        ResourceRouter router = new DefaultResourceRoot(runtime, List.of(rootResource(unmatched("/users/1"))));
         OutboundResponse response = router.dispatch(request, context);
         assertNull(response.getGenericEntity());
         assertEquals(404, response.getStatus());
@@ -99,13 +99,12 @@ public class ResourceDispatcherTest {
     private ResourceRouter.RootResource rootResource(StubUriTemplate stub) {
         ResourceRouter.RootResource unmatched = mock(ResourceRouter.RootResource.class);
         when(unmatched.getUriTemplate()).thenReturn(stub.uriTemplate);
-        // todo stub for any()
         when(unmatched.match(same(stub.result), eq("GET"), eq(new String[]{MediaType.WILDCARD}), eq(builder)))
                 .thenReturn(Optional.empty());
         return unmatched;
     }
 
-    private StubUriTemplate unmatched2(String path) {
+    private StubUriTemplate unmatched(String path) {
         UriTemplate unmatchedUriTemplate = mock(UriTemplate.class);
         when(unmatchedUriTemplate.match(eq(path))).thenReturn(Optional.empty());
         return new StubUriTemplate(unmatchedUriTemplate, null);
