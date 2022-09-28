@@ -96,15 +96,6 @@ public class ResourceDispatcherTest {
         assertEquals(204, response.getStatus());
     }
 
-    private ResourceRouter.RootResource rootResource(UriTemplate unmatchedUriTemplate) {
-        ResourceRouter.RootResource unmatched = mock(ResourceRouter.RootResource.class);
-        when(unmatched.getUriTemplate()).thenReturn(unmatchedUriTemplate);
-        // todo stub for any()
-        when(unmatched.match(any(), eq("GET"), eq(new String[]{MediaType.WILDCARD}), eq(builder)))
-                .thenReturn(Optional.empty());
-        return unmatched;
-    }
-
     private ResourceRouter.RootResource rootResource(StubUriTemplate stub) {
         ResourceRouter.RootResource unmatched = mock(ResourceRouter.RootResource.class);
         when(unmatched.getUriTemplate()).thenReturn(stub.uriTemplate);
@@ -112,12 +103,6 @@ public class ResourceDispatcherTest {
         when(unmatched.match(same(stub.result), eq("GET"), eq(new String[]{MediaType.WILDCARD}), eq(builder)))
                 .thenReturn(Optional.empty());
         return unmatched;
-    }
-
-    private UriTemplate unmatched(String path) {
-        UriTemplate unmatchedUriTemplate = mock(UriTemplate.class);
-        when(unmatchedUriTemplate.match(eq(path))).thenReturn(Optional.empty());
-        return unmatchedUriTemplate;
     }
 
     private StubUriTemplate unmatched2(String path) {
