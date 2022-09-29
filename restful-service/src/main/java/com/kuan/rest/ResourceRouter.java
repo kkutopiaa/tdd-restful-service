@@ -95,7 +95,6 @@ class RootResourceClass implements ResourceRouter.RootResource {
     private Class<?> resourceClass;
     private UriTemplate uriTemplate;
 
-    private Map<String, List<ResourceRouter.ResourceMethod>> resourceMethods;
     private ResourceMethods resourceMethods_;
 
 
@@ -147,7 +146,6 @@ class RootResourceClass implements ResourceRouter.RootResource {
         this.uriTemplate = new PathUriTemplate(resourceClass.getAnnotation(Path.class).value());
 
         Method[] methods = resourceClass.getMethods();
-        this.resourceMethods = ResourceMethods.getResourceMethods(methods);
         this.resourceMethods_ = new ResourceMethods(methods);
     }
 
@@ -155,10 +153,6 @@ class RootResourceClass implements ResourceRouter.RootResource {
     public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method,
                                                          String[] mediaTypes, UriInfoBuilder builder) {
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
-        return findResourceMethods(method, remaining);
-    }
-
-    private Optional<ResourceRouter.ResourceMethod> findResourceMethods(String method, String remaining) {
         return resourceMethods_.findResourceMethods(method, remaining);
     }
 
