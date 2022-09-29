@@ -96,7 +96,7 @@ class RootResourceClass implements ResourceRouter.RootResource {
     private UriTemplate uriTemplate;
 
     private Map<String, List<ResourceRouter.ResourceMethod>> resourceMethods;
-    private  ResourceMethods resourceMethods_;
+    private ResourceMethods resourceMethods_;
 
 
     static class ResourceMethods {
@@ -106,8 +106,32 @@ class RootResourceClass implements ResourceRouter.RootResource {
         public ResourceMethods(Method[] methods) {
             this.methods = methods;
         }
-    }
 
+        private static Map<String, List<ResourceRouter.ResourceMethod>> getResourceMethods(Method[] methods) {
+            return Arrays.stream(methods)
+                    .filter(m -> Arrays.stream(m.getAnnotations())
+                            .anyMatch(a -> a.annotationType().isAnnotationPresent(HttpMethod.class)))
+                    .map(m -> (ResourceRouter.ResourceMethod) new DefaultResourceMethod(m))
+                    .collect(Collectors.groupingBy(ResourceRouter.ResourceMethod::getHttpMethod));
+        }
+
+        static private Result match(String path, ResourceRouter.ResourceMethod method) {
+            return new Result(method.getUriTemplate().match(path), method);
+        }
+
+        static record Result(Optional<UriTemplate.MatchResult> matched,
+                             ResourceRouter.ResourceMethod resourceMethod) implements Comparable<Result> {
+
+            public boolean isMatched() {
+                return matched.map(r -> r.getRemaining() == null).orElse(false);
+            }
+
+            @Override
+            public int compareTo(Result o) {
+                return matched.flatMap(x -> o.matched.map(x::compareTo)).orElse(0);
+            }
+        }
+    }
 
 
     public RootResourceClass(Class<?> resourceClass) {
@@ -115,28 +139,20 @@ class RootResourceClass implements ResourceRouter.RootResource {
         this.uriTemplate = new PathUriTemplate(resourceClass.getAnnotation(Path.class).value());
 
         Method[] methods = resourceClass.getMethods();
-        this.resourceMethods = getResourceMethods(methods);
+        this.resourceMethods = ResourceMethods.getResourceMethods(methods);
         this.resourceMethods_ = new ResourceMethods(methods);
     }
 
-    private static Map<String, List<ResourceRouter.ResourceMethod>> getResourceMethods(Method[] methods) {
-        return Arrays.stream(methods)
-                .filter(m -> Arrays.stream(m.getAnnotations())
-                        .anyMatch(a -> a.annotationType().isAnnotationPresent(HttpMethod.class)))
-                .map(m -> (ResourceRouter.ResourceMethod) new DefaultResourceMethod(m))
-                .collect(Collectors.groupingBy(ResourceRouter.ResourceMethod::getHttpMethod));
-    }
-
     @Override
-    public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method, String[] mediaTypes,
-                                                         UriInfoBuilder builder) {
+    public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method,
+                                                         String[] mediaTypes, UriInfoBuilder builder) {
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
         return Optional.ofNullable(resourceMethods.get(method))
                 .flatMap(methods -> methods.stream()
-                        .map(m -> match(remaining, m))
-                        .filter(Result::isMatched)
+                        .map(m -> ResourceMethods.match(remaining, m))
+                        .filter(ResourceMethods.Result::isMatched)
                         .sorted().findFirst()
-                        .map(Result::resourceMethod));
+                        .map(ResourceMethods.Result::resourceMethod));
     }
 
     @Override
@@ -146,24 +162,6 @@ class RootResourceClass implements ResourceRouter.RootResource {
         // 可以确定的是，最终一定会通过重构的方式，将这部分逻辑分离出去。
         // 所以，可以单独把 UriTemplate 抽出来做测试
         return uriTemplate;
-    }
-
-
-    private Result match(String path, ResourceRouter.ResourceMethod method) {
-        return new Result(method.getUriTemplate().match(path), method);
-    }
-
-    record Result(Optional<UriTemplate.MatchResult> matched,
-                  ResourceRouter.ResourceMethod resourceMethod) implements Comparable<Result> {
-
-        public boolean isMatched() {
-            return matched.map(r -> r.getRemaining() == null).orElse(false);
-        }
-
-        @Override
-        public int compareTo(Result o) {
-            return matched.flatMap(x -> o.matched.map(x::compareTo)).orElse(0);
-        }
     }
 
 
@@ -220,7 +218,8 @@ class SubResource implements ResourceRouter.Resource {
     }
 
     @Override
-    public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method, String[] mediaTypes, UriInfoBuilder builder) {
+    public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method,
+                                                         String[] mediaTypes, UriInfoBuilder builder) {
         return Optional.empty();
     }
 }
