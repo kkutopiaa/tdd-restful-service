@@ -191,3 +191,19 @@ class RootResourceClass implements ResourceRouter.RootResource {
     }
 
 }
+
+class SubResource implements ResourceRouter.Resource {
+
+
+    private Object subResource;
+
+    public SubResource(Object subResource) {
+
+        this.subResource = subResource;
+    }
+
+    @Override
+    public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method, String[] mediaTypes, UriInfoBuilder builder) {
+        return Optional.empty();
+    }
+}

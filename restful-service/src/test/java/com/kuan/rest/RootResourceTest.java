@@ -36,12 +36,22 @@ public class RootResourceTest {
             /messages/topics/1234, GET,        Messages.topic1234,      GET with multiply choices
             /messages,             GET,        Messages.get,            GET with resource method without Path
             """)
-    public void should_match_resource_method(String path, String httpMethod, String resourceMethod, String context) {
+    public void should_match_resource_method_in_root_resource(String path, String httpMethod, String resourceMethod, String context) {
         ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
         UriTemplate.MatchResult result = resource.getUriTemplate().match(path).get();
         ResourceRouter.ResourceMethod method = resource.match(result, httpMethod,
                 new String[]{MediaType.TEXT_PLAIN}, Mockito.mock(UriInfoBuilder.class)).get();
         assertEquals(resourceMethod, method.toString());
+    }
+
+    @Test
+    public void should_match_resource_method_in_sub_resource() {
+        ResourceRouter.Resource resource = new SubResource(new Message());
+        UriTemplate.MatchResult result = Mockito.mock(UriTemplate.MatchResult.class);
+        Mockito.when(result.getRemaining()).thenReturn("/content");
+
+        assertTrue(resource.match(result, "GET", new String[]{MediaType.TEXT_PLAIN},
+                Mockito.mock(UriInfoBuilder.class)).isPresent());
     }
 
     @ParameterizedTest(name = "{2}")
@@ -145,6 +155,24 @@ public class RootResourceTest {
         @Produces(MediaType.TEXT_PLAIN)
         public String topic1234() {
             return "topic1234";
+        }
+
+
+        @Path("/{id}")
+        public Message getById() {
+            return new Message();
+        }
+
+    }
+
+
+    static class Message {
+
+        @GET
+        @Path("/content")
+        @Produces(MediaType.TEXT_PLAIN)
+        public String content() {
+            return "content";
         }
 
     }
