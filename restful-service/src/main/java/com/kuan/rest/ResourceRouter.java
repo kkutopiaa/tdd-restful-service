@@ -90,56 +90,56 @@ class DefaultResourceRoot implements ResourceRouter {
 }
 
 
+class ResourceMethods {
+    private Map<String, List<ResourceRouter.ResourceMethod>> resourceMethods;
+
+    public ResourceMethods(Method[] methods) {
+        this.resourceMethods = getResourceMethods(methods);
+    }
+
+    private static Map<String, List<ResourceRouter.ResourceMethod>> getResourceMethods(Method[] methods) {
+        return Arrays.stream(methods)
+                .filter(m -> Arrays.stream(m.getAnnotations())
+                        .anyMatch(a -> a.annotationType().isAnnotationPresent(HttpMethod.class)))
+                .map(m -> (ResourceRouter.ResourceMethod) new RootResourceClass.DefaultResourceMethod(m))
+                .collect(Collectors.groupingBy(ResourceRouter.ResourceMethod::getHttpMethod));
+    }
+
+    public Optional<ResourceRouter.ResourceMethod> findResourceMethods(String method, String remaining) {
+        return Optional.ofNullable(resourceMethods.get(method))
+                .flatMap(methods -> methods.stream()
+                        .map(m -> ResourceMethods.match(remaining, m))
+                        .filter(ResourceMethods.Result::isMatched)
+                        .sorted().findFirst()
+                        .map(ResourceMethods.Result::resourceMethod));
+    }
+
+    static private Result match(String path, ResourceRouter.ResourceMethod method) {
+        return new Result(method.getUriTemplate().match(path), method);
+    }
+
+    static record Result(Optional<UriTemplate.MatchResult> matched,
+                         ResourceRouter.ResourceMethod resourceMethod) implements Comparable<Result> {
+
+        public boolean isMatched() {
+            return matched.map(r -> r.getRemaining() == null).orElse(false);
+        }
+
+        @Override
+        public int compareTo(Result o) {
+            return matched.flatMap(x -> o.matched.map(x::compareTo)).orElse(0);
+        }
+    }
+}
+
+
+
 class RootResourceClass implements ResourceRouter.RootResource {
 
     private Class<?> resourceClass;
     private UriTemplate uriTemplate;
 
     private ResourceMethods resourceMethods;
-
-
-    static class ResourceMethods {
-        private Map<String, List<ResourceRouter.ResourceMethod>> resourceMethods;
-
-        public ResourceMethods(Method[] methods) {
-            this.resourceMethods = getResourceMethods(methods);
-        }
-
-        private static Map<String, List<ResourceRouter.ResourceMethod>> getResourceMethods(Method[] methods) {
-            return Arrays.stream(methods)
-                    .filter(m -> Arrays.stream(m.getAnnotations())
-                            .anyMatch(a -> a.annotationType().isAnnotationPresent(HttpMethod.class)))
-                    .map(m -> (ResourceRouter.ResourceMethod) new DefaultResourceMethod(m))
-                    .collect(Collectors.groupingBy(ResourceRouter.ResourceMethod::getHttpMethod));
-        }
-
-        private Optional<ResourceRouter.ResourceMethod> findResourceMethods(String method, String remaining) {
-            return Optional.ofNullable(resourceMethods.get(method))
-                    .flatMap(methods -> methods.stream()
-                            .map(m -> ResourceMethods.match(remaining, m))
-                            .filter(ResourceMethods.Result::isMatched)
-                            .sorted().findFirst()
-                            .map(ResourceMethods.Result::resourceMethod));
-        }
-
-        static private Result match(String path, ResourceRouter.ResourceMethod method) {
-            return new Result(method.getUriTemplate().match(path), method);
-        }
-
-        static record Result(Optional<UriTemplate.MatchResult> matched,
-                             ResourceRouter.ResourceMethod resourceMethod) implements Comparable<Result> {
-
-            public boolean isMatched() {
-                return matched.map(r -> r.getRemaining() == null).orElse(false);
-            }
-
-            @Override
-            public int compareTo(Result o) {
-                return matched.flatMap(x -> o.matched.map(x::compareTo)).orElse(0);
-            }
-        }
-    }
-
 
     public RootResourceClass(Class<?> resourceClass) {
         this.resourceClass = resourceClass;
