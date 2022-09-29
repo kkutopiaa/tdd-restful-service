@@ -101,7 +101,7 @@ class ResourceMethods {
         return Arrays.stream(methods)
                 .filter(m -> Arrays.stream(m.getAnnotations())
                         .anyMatch(a -> a.annotationType().isAnnotationPresent(HttpMethod.class)))
-                .map(m -> (ResourceRouter.ResourceMethod) new RootResourceClass.DefaultResourceMethod(m))
+                .map(m -> (ResourceRouter.ResourceMethod) new DefaultResourceMethod(m))
                 .collect(Collectors.groupingBy(ResourceRouter.ResourceMethod::getHttpMethod));
     }
 
@@ -166,46 +166,6 @@ class RootResourceClass implements ResourceRouter.RootResource {
     }
 
 
-    static class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
-
-        private String httpMethod;
-        private UriTemplate uriTemplate;
-        private Method method;
-
-        public DefaultResourceMethod(Method method) {
-            this.method = method;
-            this.uriTemplate = new PathUriTemplate(
-                    Optional.ofNullable(method.getAnnotation(Path.class))
-                            .map(Path::value)
-                            .orElse("")
-            );
-            this.httpMethod = Arrays.stream(method.getAnnotations())
-                    .filter(a -> a.annotationType().isAnnotationPresent(HttpMethod.class))
-                    .findFirst()
-                    .get().annotationType().getAnnotation(HttpMethod.class).value();
-        }
-
-        @Override
-        public String getHttpMethod() {
-            return httpMethod;
-        }
-
-        @Override
-        public UriTemplate getUriTemplate() {
-            return uriTemplate;
-        }
-
-        @Override
-        public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
-            return null;
-        }
-
-        @Override
-        public String toString() {
-            return method.getDeclaringClass().getSimpleName() + "." + method.getName();
-        }
-    }
-
 }
 
 class SubResource implements ResourceRouter.Resource {
@@ -224,3 +184,44 @@ class SubResource implements ResourceRouter.Resource {
         return Optional.empty();
     }
 }
+
+class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
+
+    private String httpMethod;
+    private UriTemplate uriTemplate;
+    private Method method;
+
+    public DefaultResourceMethod(Method method) {
+        this.method = method;
+        this.uriTemplate = new PathUriTemplate(
+                Optional.ofNullable(method.getAnnotation(Path.class))
+                        .map(Path::value)
+                        .orElse("")
+        );
+        this.httpMethod = Arrays.stream(method.getAnnotations())
+                .filter(a -> a.annotationType().isAnnotationPresent(HttpMethod.class))
+                .findFirst()
+                .get().annotationType().getAnnotation(HttpMethod.class).value();
+    }
+
+    @Override
+    public String getHttpMethod() {
+        return httpMethod;
+    }
+
+    @Override
+    public UriTemplate getUriTemplate() {
+        return uriTemplate;
+    }
+
+    @Override
+    public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return method.getDeclaringClass().getSimpleName() + "." + method.getName();
+    }
+}
+
