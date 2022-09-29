@@ -115,6 +115,15 @@ class RootResourceClass implements ResourceRouter.RootResource {
                     .collect(Collectors.groupingBy(ResourceRouter.ResourceMethod::getHttpMethod));
         }
 
+        private Optional<ResourceRouter.ResourceMethod> findResourceMethods(String method, String remaining) {
+            return Optional.ofNullable(resourceMethods.get(method))
+                    .flatMap(methods -> methods.stream()
+                            .map(m -> ResourceMethods.match(remaining, m))
+                            .filter(ResourceMethods.Result::isMatched)
+                            .sorted().findFirst()
+                            .map(ResourceMethods.Result::resourceMethod));
+        }
+
         static private Result match(String path, ResourceRouter.ResourceMethod method) {
             return new Result(method.getUriTemplate().match(path), method);
         }
@@ -147,6 +156,10 @@ class RootResourceClass implements ResourceRouter.RootResource {
     public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method,
                                                          String[] mediaTypes, UriInfoBuilder builder) {
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
+        return findResourceMethods(method, remaining);
+    }
+
+    private Optional<ResourceRouter.ResourceMethod> findResourceMethods(String method, String remaining) {
         return Optional.ofNullable(resourceMethods.get(method))
                 .flatMap(methods -> methods.stream()
                         .map(m -> ResourceMethods.match(remaining, m))
