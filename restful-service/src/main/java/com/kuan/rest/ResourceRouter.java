@@ -105,10 +105,10 @@ class ResourceMethods {
                 .collect(Collectors.groupingBy(ResourceRouter.ResourceMethod::getHttpMethod));
     }
 
-    public Optional<ResourceRouter.ResourceMethod> findResourceMethods(String method, String remaining) {
+    public Optional<ResourceRouter.ResourceMethod> findResourceMethods(String path, String method) {
         return Optional.ofNullable(resourceMethods.get(method))
                 .flatMap(methods -> methods.stream()
-                        .map(m -> ResourceMethods.match(remaining, m))
+                        .map(m -> ResourceMethods.match(path, m))
                         .filter(ResourceMethods.Result::isMatched)
                         .sorted().findFirst()
                         .map(ResourceMethods.Result::resourceMethod));
@@ -153,7 +153,7 @@ class RootResourceClass implements ResourceRouter.RootResource {
     public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method,
                                                          String[] mediaTypes, UriInfoBuilder builder) {
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
-        return resourceMethods.findResourceMethods(method, remaining);
+        return resourceMethods.findResourceMethods(remaining, method);
     }
 
     @Override
@@ -165,23 +165,23 @@ class RootResourceClass implements ResourceRouter.RootResource {
         return uriTemplate;
     }
 
-
 }
 
 class SubResource implements ResourceRouter.Resource {
 
-
     private Object subResource;
+    private ResourceMethods resourceMethods;
 
     public SubResource(Object subResource) {
-
         this.subResource = subResource;
+        this.resourceMethods = new ResourceMethods(subResource.getClass().getMethods());
     }
 
     @Override
     public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method,
                                                          String[] mediaTypes, UriInfoBuilder builder) {
-        return Optional.empty();
+        String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
+        return resourceMethods.findResourceMethods(remaining, method);
     }
 }
 
