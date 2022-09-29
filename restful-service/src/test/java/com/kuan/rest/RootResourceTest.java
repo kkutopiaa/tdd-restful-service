@@ -2,6 +2,7 @@ package com.kuan.rest;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -45,6 +46,7 @@ public class RootResourceTest {
     }
 
     @Test
+    @Disabled
     public void should_match_resource_method_in_sub_resource() {
         ResourceRouter.Resource resource = new SubResource(new Message());
         UriTemplate.MatchResult result = Mockito.mock(UriTemplate.MatchResult.class);

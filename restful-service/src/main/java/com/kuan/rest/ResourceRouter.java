@@ -96,18 +96,35 @@ class RootResourceClass implements ResourceRouter.RootResource {
     private UriTemplate uriTemplate;
 
     private Map<String, List<ResourceRouter.ResourceMethod>> resourceMethods;
+    private  ResourceMethods resourceMethods_;
+
+
+    static class ResourceMethods {
+        private Map<String, List<ResourceRouter.ResourceMethod>> resourceMethods;
+        private Method[] methods;
+
+        public ResourceMethods(Method[] methods) {
+            this.methods = methods;
+        }
+    }
+
+
 
     public RootResourceClass(Class<?> resourceClass) {
         this.resourceClass = resourceClass;
         this.uriTemplate = new PathUriTemplate(resourceClass.getAnnotation(Path.class).value());
 
-        this.resourceMethods = Arrays.stream(resourceClass.getMethods())
+        Method[] methods = resourceClass.getMethods();
+        this.resourceMethods = getResourceMethods(methods);
+        this.resourceMethods_ = new ResourceMethods(methods);
+    }
+
+    private static Map<String, List<ResourceRouter.ResourceMethod>> getResourceMethods(Method[] methods) {
+        return Arrays.stream(methods)
                 .filter(m -> Arrays.stream(m.getAnnotations())
                         .anyMatch(a -> a.annotationType().isAnnotationPresent(HttpMethod.class)))
                 .map(m -> (ResourceRouter.ResourceMethod) new DefaultResourceMethod(m))
                 .collect(Collectors.groupingBy(ResourceRouter.ResourceMethod::getHttpMethod));
-
-
     }
 
     @Override
