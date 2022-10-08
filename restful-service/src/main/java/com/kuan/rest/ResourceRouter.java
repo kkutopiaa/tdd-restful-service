@@ -237,6 +237,11 @@ class SubResourceLocators {
     }
 
     public Optional<ResourceRouter.SubResourceLocator> findSubResource(String s) {
-        return null;
+        return Optional.of(new ResourceRouter.SubResourceLocator() {
+            @Override
+            public UriTemplate getUriTemplate() {
+                return null;
+            }
+        });
     }
 }
