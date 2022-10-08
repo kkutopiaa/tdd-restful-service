@@ -241,21 +241,25 @@ class SubResourceLocators {
                 .map((Function<Method, ResourceRouter.SubResourceLocator>) DefaultSubResourceLocator::new).toList();
     }
 
-    public Optional<ResourceRouter.SubResourceLocator> findSubResource(String s) {
-        return subResourceLocators.stream().findFirst();
+    public Optional<ResourceRouter.SubResourceLocator> findSubResource(String path) {
+        return subResourceLocators.stream()
+                .filter(l -> l.getUriTemplate().match(path).isPresent())
+                .findFirst();
     }
 
     static class DefaultSubResourceLocator implements ResourceRouter.SubResourceLocator {
 
+        private PathUriTemplate uriTemplate;
         private Method method;
 
         public DefaultSubResourceLocator(Method method) {
             this.method = method;
+            this.uriTemplate = new PathUriTemplate(method.getAnnotation(Path.class).value());
         }
 
         @Override
         public UriTemplate getUriTemplate() {
-            return null;
+            return this.uriTemplate;
         }
 
         @Override
