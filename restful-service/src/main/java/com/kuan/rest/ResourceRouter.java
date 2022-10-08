@@ -32,6 +32,10 @@ public interface ResourceRouter {
         GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
+    interface SubResourceLocator {
+        UriTemplate getUriTemplate();
+    }
+
 }
 
 
@@ -225,3 +229,14 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
     }
 }
 
+class SubResourceLocators {
+
+
+    public SubResourceLocators(Method[] methods) {
+
+    }
+
+    public Optional<ResourceRouter.SubResourceLocator> findSubResource(String s) {
+        return null;
+    }
+}
