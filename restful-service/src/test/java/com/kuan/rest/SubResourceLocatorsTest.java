@@ -4,6 +4,7 @@ import jakarta.ws.rs.Path;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -16,7 +17,9 @@ public class SubResourceLocatorsTest {
     public void should_match_path_with_url() {
         SubResourceLocators locators = new SubResourceLocators(Messages.class.getMethods());
 
-        assertTrue(locators.findSubResource("/hello").isPresent());
+        ResourceRouter.SubResourceLocator locator = locators.findSubResource("/hello").get();
+
+        assertEquals("Messages.hello", locator.toString());
     }
 
 

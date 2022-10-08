@@ -10,6 +10,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public interface ResourceRouter {
@@ -137,7 +138,6 @@ class ResourceMethods {
 }
 
 
-
 class RootResourceClass implements ResourceRouter.RootResource {
 
     private Class<?> resourceClass;
@@ -231,17 +231,36 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
 class SubResourceLocators {
 
+    private List<ResourceRouter.SubResourceLocator> subResourceLocators;
 
     public SubResourceLocators(Method[] methods) {
-
+        subResourceLocators = Arrays.stream(methods)
+                .filter(m -> m.isAnnotationPresent(Path.class)
+                        && Arrays.stream(m.getAnnotations())
+                        .noneMatch(a -> a.annotationType().isAnnotationPresent(HttpMethod.class)))
+                .map((Function<Method, ResourceRouter.SubResourceLocator>) DefaultSubResourceLocator::new).toList();
     }
 
     public Optional<ResourceRouter.SubResourceLocator> findSubResource(String s) {
-        return Optional.of(new ResourceRouter.SubResourceLocator() {
-            @Override
-            public UriTemplate getUriTemplate() {
-                return null;
-            }
-        });
+        return subResourceLocators.stream().findFirst();
+    }
+
+    static class DefaultSubResourceLocator implements ResourceRouter.SubResourceLocator {
+
+        private Method method;
+
+        public DefaultSubResourceLocator(Method method) {
+            this.method = method;
+        }
+
+        @Override
+        public UriTemplate getUriTemplate() {
+            return null;
+        }
+
+        @Override
+        public String toString() {
+            return method.getDeclaringClass().getSimpleName() + '.' + method.getName();
+        }
     }
 }
