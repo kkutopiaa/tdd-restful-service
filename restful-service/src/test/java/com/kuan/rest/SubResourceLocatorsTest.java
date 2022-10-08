@@ -22,6 +22,14 @@ public class SubResourceLocatorsTest {
         assertEquals("Messages.hello", locator.toString());
     }
 
+    @Test
+    public void should_return_empty_if_not_match_url() {
+        SubResourceLocators locators = new SubResourceLocators(Messages.class.getMethods());
+
+        assertTrue(locators.findSubResource("/missing").isEmpty());
+    }
+
+
 
     @Path("/messages")
     static class Messages {
