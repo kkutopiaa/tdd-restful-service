@@ -51,8 +51,8 @@ class DefaultResourceRoot implements ResourceRouter {
         String path = request.getServletPath();
         UriInfoBuilder uriInfoBuilder = runtime.createUriInfoBuilder(request);
         List<RootResource> rootResources = this.rootResources;
-        Optional<ResourceMethod> method = UriHandlers.match(path, rootResources, r -> true,
-                r -> findResourceMethod(r, request, uriInfoBuilder));
+        Optional<ResourceMethod> method = UriHandlers.mapMatched(path, rootResources,
+                (result, resource) -> getResourceMethod(request, uriInfoBuilder, result, resource));
 
         if (method.isEmpty()) {
             return (OutboundResponse) Response.status(Response.Status.NOT_FOUND).build();
