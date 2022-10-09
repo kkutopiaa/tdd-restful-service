@@ -112,22 +112,26 @@ class ResourceMethods {
 
     public Optional<ResourceRouter.ResourceMethod> findResourceMethods(String path, String method) {
         return Optional.ofNullable(resourceMethods.get(method))
-                .flatMap(methods -> match(path, methods, r -> r.getRemaining() == null));
-    }
-
-    // 真正想重用的方法
-    public static <T extends ResourceRouter.UriHandler> Optional<T>
-    match(String path, List<T> methods, Function<UriTemplate.MatchResult, Boolean> matchFunction) {
-        return methods.stream()
-                .map(m -> new Result<>(m.getUriTemplate().match(path), m, matchFunction))
-                .filter(Result::isMatched)
-                .sorted().findFirst()
-                .map(Result::handler);
+                .flatMap(methods -> Result.match(path, methods, r -> r.getRemaining() == null));
     }
 
     static record Result<T extends ResourceRouter.UriHandler>
             (Optional<UriTemplate.MatchResult> matched, T handler,
              Function<UriTemplate.MatchResult, Boolean> matchFunction) implements Comparable<Result<T>> {
+
+        // 真正想重用的方法
+        public static <T extends ResourceRouter.UriHandler> Optional<T>
+        match(String path, List<T> handlers, Function<UriTemplate.MatchResult, Boolean> matchFunction) {
+            return handlers.stream()
+                    .map(m -> new Result<>(m.getUriTemplate().match(path), m, matchFunction))
+                    .filter(Result::isMatched)
+                    .sorted().findFirst()
+                    .map(Result::handler);
+        }
+
+        public static <T extends ResourceRouter.UriHandler> Optional<T> match(String path, List<T> handlers) {
+            return match(path, handlers, r -> true);
+        }
 
         public boolean isMatched() {
             return matched.map(matchFunction).orElse(false);
