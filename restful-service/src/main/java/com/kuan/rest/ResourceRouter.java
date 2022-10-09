@@ -117,15 +117,12 @@ class ResourceMethods {
 
     // 真正想重用的方法
     public static <T extends ResourceRouter.UriHandler> Optional<T> match(String path, List<T> methods) {
+        Function<UriTemplate.MatchResult, Boolean> matchFunction = r -> r.getRemaining() == null;
         return methods.stream()
-                .map(m -> ResourceMethods.match(path, m))
+                .map(m -> new Result<>(m.getUriTemplate().match(path), m, matchFunction))
                 .filter(Result::isMatched)
                 .sorted().findFirst()
                 .map(Result::handler);
-    }
-
-    static private <T extends ResourceRouter.UriHandler> Result<T> match(String path, T method) {
-        return new Result<>(method.getUriTemplate().match(path), method, r -> r.getRemaining() == null);
     }
 
     static record Result<T extends ResourceRouter.UriHandler>
