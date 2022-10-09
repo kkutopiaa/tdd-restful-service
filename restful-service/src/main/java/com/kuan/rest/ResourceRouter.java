@@ -112,11 +112,16 @@ class ResourceMethods {
 
     public Optional<ResourceRouter.ResourceMethod> findResourceMethods(String path, String method) {
         return Optional.ofNullable(resourceMethods.get(method))
-                .flatMap(methods -> methods.stream()
-                        .map(m -> ResourceMethods.match(path, m))
-                        .filter(ResourceMethods.Result::isMatched)
-                        .sorted().findFirst()
-                        .map(ResourceMethods.Result::resourceMethod));
+                .flatMap(methods -> match(path, methods));
+    }
+
+    private static Optional<ResourceRouter.ResourceMethod> match(String path,
+                                                                 List<ResourceRouter.ResourceMethod> methods) {
+        return methods.stream()
+                .map(m -> ResourceMethods.match(path, m))
+                .filter(Result::isMatched)
+                .sorted().findFirst()
+                .map(Result::resourceMethod);
     }
 
     static private Result match(String path, ResourceRouter.ResourceMethod method) {
