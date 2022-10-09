@@ -175,3 +175,8 @@ UriTemplate 完成了任务列表的开发后，细化一下 RootResource/Resour
     - 当没有资源方法可以匹配请求时，选择最优匹配 SubResourceLocator，通过它继续进行派分
     - 如果 SubResourceLocator 也无法找到满足的请求时，返回 404
 
+--- 
+至此（参考 git commit 顺序）,实现了 ResourceRouter 的开发。
+现阶段的 UriTemplate 整体的架构愿景如下： 
+![](imgs/10.UriTemplate的架构愿景.png)
+![](imgs/11.UriTemplate的时序图.png)
