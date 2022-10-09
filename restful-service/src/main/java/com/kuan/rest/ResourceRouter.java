@@ -124,7 +124,7 @@ class ResourceMethods {
                 .map(Result::handler);
     }
 
-    static private Result<ResourceRouter.ResourceMethod> match(String path, ResourceRouter.ResourceMethod method) {
+    static private <T extends ResourceRouter.UriHandler> Result<T> match(String path, T method) {
         return new Result<>(method.getUriTemplate().match(path), method, r -> r.getRemaining() == null);
     }
 
