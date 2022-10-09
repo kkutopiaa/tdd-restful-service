@@ -55,7 +55,8 @@ class DefaultResourceRoot implements ResourceRouter {
         String path = request.getServletPath();
         UriInfoBuilder uriInfoBuilder = runtime.createUriInfoBuilder(request);
         List<RootResource> rootResources = this.rootResources;
-        Optional<ResourceMethod> method = getMethod(request, path, uriInfoBuilder, rootResources);
+        Optional<ResourceMethod> method = Result.match(path, rootResources, r -> true,
+                r -> findResourceMethod(r, request, uriInfoBuilder));
 
         if (method.isEmpty()) {
             return (OutboundResponse) Response.status(Response.Status.NOT_FOUND).build();
@@ -64,12 +65,6 @@ class DefaultResourceRoot implements ResourceRouter {
         return (OutboundResponse) method.map(m -> m.call(resourceContext, uriInfoBuilder))
                 .map(entity -> Response.ok(entity).build())
                 .orElseGet(() -> Response.noContent().build());
-    }
-
-    private Optional<ResourceMethod> getMethod(HttpServletRequest request, String path, UriInfoBuilder uriInfoBuilder,
-                                               List<RootResource> rootResources) {
-        return com.kuan.rest.Result.match(path, rootResources, r -> true,
-                r -> findResourceMethod(r, request, uriInfoBuilder));
     }
 
     private Optional<ResourceMethod> findResourceMethod(Optional<com.kuan.rest.Result<RootResource>> result,
