@@ -112,12 +112,12 @@ class ResourceMethods {
 
     public Optional<ResourceRouter.ResourceMethod> findResourceMethods(String path, String method) {
         return Optional.ofNullable(resourceMethods.get(method))
-                .flatMap(methods -> match(path, methods));
+                .flatMap(methods -> match(path, methods, r -> r.getRemaining() == null));
     }
 
     // 真正想重用的方法
-    public static <T extends ResourceRouter.UriHandler> Optional<T> match(String path, List<T> methods) {
-        Function<UriTemplate.MatchResult, Boolean> matchFunction = r -> r.getRemaining() == null;
+    public static <T extends ResourceRouter.UriHandler> Optional<T>
+    match(String path, List<T> methods, Function<UriTemplate.MatchResult, Boolean> matchFunction) {
         return methods.stream()
                 .map(m -> new Result<>(m.getUriTemplate().match(path), m, matchFunction))
                 .filter(Result::isMatched)
