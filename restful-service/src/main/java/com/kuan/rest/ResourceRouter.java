@@ -125,14 +125,15 @@ class ResourceMethods {
     }
 
     static private Result<ResourceRouter.ResourceMethod> match(String path, ResourceRouter.ResourceMethod method) {
-        return new Result<>(method.getUriTemplate().match(path), method);
+        return new Result<>(method.getUriTemplate().match(path), method, r -> r.getRemaining() == null);
     }
 
     static record Result<T extends ResourceRouter.UriHandler>
-            (Optional<UriTemplate.MatchResult> matched, T handler) implements Comparable<Result<T>> {
+            (Optional<UriTemplate.MatchResult> matched, T handler,
+             Function<UriTemplate.MatchResult, Boolean> matchFunction) implements Comparable<Result<T>> {
 
         public boolean isMatched() {
-            return matched.map(r -> r.getRemaining() == null).orElse(false);
+            return matched.map(matchFunction).orElse(false);
         }
 
         @Override
