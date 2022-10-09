@@ -65,8 +65,20 @@ class DefaultResourceRoot implements ResourceRouter {
 
     private Optional<ResourceMethod> findResourceMethod(Optional<UriHandlers.Result<RootResource>> result,
                                                         HttpServletRequest request, UriInfoBuilder uriInfoBuilder) {
-        return result.flatMap(r -> r.handler().match(r.matched().get(), request.getMethod(),
-                Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder));
+        return result.flatMap(r -> getMatch(request, uriInfoBuilder, r));
+    }
+
+    private static Optional<ResourceMethod> getMatch(HttpServletRequest request, UriInfoBuilder uriInfoBuilder,
+                                                     UriHandlers.Result<RootResource> r) {
+        Optional<UriTemplate.MatchResult> matched = r.matched();
+        RootResource handler = r.handler();
+        return getResourceMethod(request, uriInfoBuilder, matched, handler);
+    }
+
+    private static Optional<ResourceMethod> getResourceMethod(HttpServletRequest request, UriInfoBuilder uriInfoBuilder,
+                                                              Optional<UriTemplate.MatchResult> matched, RootResource handler) {
+        return handler.match(matched.get(), request.getMethod(),
+                Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder);
     }
 }
 
