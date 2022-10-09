@@ -18,21 +18,24 @@ class UriHandlers {
     public static <T extends UriHandler, R> Optional<R> match(String path, List<T> handlers,
                                                               Function<UriTemplate.MatchResult, Boolean> matchFunction,
                                                               Function<Optional<Result<T>>, Optional<R>> mapper) {
-        return mapper.apply(
-                handlers.stream()
-                        .map(m -> new Result<>(m.getUriTemplate().match(path), m, matchFunction))
-                        .filter(Result::isMatched)
-                        .sorted().findFirst()
-        );
+        return mapper.apply(matched(path, handlers, matchFunction));
     }
 
     public static <T extends UriHandler> Optional<T> match(String path, List<T> handlers,
                                                            Function<UriTemplate.MatchResult, Boolean> matchFunction) {
-        return match(path, handlers, matchFunction, r -> r.map(Result::handler));
+        return matched(path, handlers, matchFunction).map(Result::handler);
     }
 
     public static <T extends UriHandler> Optional<T> match(String path, List<T> handlers) {
         return match(path, handlers, r -> true);
+    }
+
+    private static <T extends UriHandler> Optional<Result<T>>
+    matched(String path, List<T> handlers, Function<UriTemplate.MatchResult, Boolean> matchFunction) {
+        return handlers.stream()
+                .map(m -> new Result<>(m.getUriTemplate().match(path), m, matchFunction))
+                .filter(Result::isMatched)
+                .sorted().findFirst();
     }
 
     static record Result<T extends UriHandler>
