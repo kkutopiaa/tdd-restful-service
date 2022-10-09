@@ -30,7 +30,7 @@ public interface ResourceRouter {
         GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
-    interface SubResourceLocator extends UriHandler{
+    interface SubResourceLocator extends UriHandler {
     }
 
     interface UriHandler {
@@ -121,22 +121,22 @@ class ResourceMethods {
                 .map(m -> ResourceMethods.match(path, m))
                 .filter(Result::isMatched)
                 .sorted().findFirst()
-                .map(Result::resourceMethod);
+                .map(Result::handler);
     }
 
-    static private Result match(String path, ResourceRouter.ResourceMethod method) {
-        return new Result(method.getUriTemplate().match(path), method);
+    static private Result<ResourceRouter.ResourceMethod> match(String path, ResourceRouter.ResourceMethod method) {
+        return new Result<>(method.getUriTemplate().match(path), method);
     }
 
-    static record Result(Optional<UriTemplate.MatchResult> matched,
-                         ResourceRouter.ResourceMethod resourceMethod) implements Comparable<Result> {
+    static record Result<T extends ResourceRouter.UriHandler>
+            (Optional<UriTemplate.MatchResult> matched, T handler) implements Comparable<Result<T>> {
 
         public boolean isMatched() {
             return matched.map(r -> r.getRemaining() == null).orElse(false);
         }
 
         @Override
-        public int compareTo(Result o) {
+        public int compareTo(Result<T> o) {
             return matched.flatMap(x -> o.matched.map(x::compareTo)).orElse(0);
         }
     }
