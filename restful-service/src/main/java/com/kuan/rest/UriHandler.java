@@ -2,6 +2,7 @@ package com.kuan.rest;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -14,11 +15,17 @@ public interface UriHandler {
 
 class UriHandlers {
 
-    // 真正想重用的方法
-    public static <T extends UriHandler, R> Optional<R> match(String path, List<T> handlers,
-                                                              Function<UriTemplate.MatchResult, Boolean> matchFunction,
-                                                              Function<Optional<Result<T>>, Optional<R>> mapper) {
+    public static <T extends UriHandler, R> Optional<R>
+    match(String path, List<T> handlers,
+          Function<UriTemplate.MatchResult, Boolean> matchFunction,
+          Function<Optional<Result<T>>, Optional<R>> mapper) {
         return mapper.apply(matched(path, handlers, matchFunction));
+    }
+
+    public static <T extends UriHandler, R> Optional<R>
+    mapMatched(String path, List<T> handlers,
+               BiFunction<Optional<UriTemplate.MatchResult>, T, Optional<R>> mapper) {
+        return matched(path, handlers, r -> true).flatMap(r -> mapper.apply(r.matched(), r.handler()));
     }
 
     public static <T extends UriHandler> Optional<T> match(String path, List<T> handlers,
