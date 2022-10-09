@@ -122,13 +122,21 @@ record Result<T extends ResourceRouter.UriHandler>
          Function<UriTemplate.MatchResult, Boolean> matchFunction) implements Comparable<Result<T>> {
 
     // 真正想重用的方法
+    public static <T extends ResourceRouter.UriHandler, R> Optional<R>
+    match(String path, List<T> handlers,
+          Function<UriTemplate.MatchResult, Boolean> matchFunction,
+          Function<Optional<Result<T>>, Optional<R>> mapper) {
+        return mapper.apply(
+                handlers.stream()
+                        .map(m -> new Result<>(m.getUriTemplate().match(path), m, matchFunction))
+                        .filter(Result::isMatched)
+                        .sorted().findFirst()
+        );
+    }
+
     public static <T extends ResourceRouter.UriHandler> Optional<T>
     match(String path, List<T> handlers, Function<UriTemplate.MatchResult, Boolean> matchFunction) {
-        return handlers.stream()
-                .map(m -> new Result<>(m.getUriTemplate().match(path), m, matchFunction))
-                .filter(Result::isMatched)
-                .sorted().findFirst()
-                .map(Result::handler);
+        return match(path, handlers, matchFunction, r -> r.map(Result::handler));
     }
 
     public static <T extends ResourceRouter.UriHandler> Optional<T> match(String path, List<T> handlers) {
