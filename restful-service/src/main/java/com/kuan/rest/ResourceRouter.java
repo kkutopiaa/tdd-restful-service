@@ -21,19 +21,19 @@ public interface ResourceRouter {
         Optional<ResourceMethod> match(UriTemplate.MatchResult result, String method, String[] mediaTypes, UriInfoBuilder builder);
     }
 
-    interface RootResource extends Resource {
-        UriTemplate getUriTemplate();
+    interface RootResource extends Resource, UriHandler {
     }
 
-    interface ResourceMethod {
+    interface ResourceMethod extends UriHandler {
         String getHttpMethod();
-
-        UriTemplate getUriTemplate();
 
         GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
-    interface SubResourceLocator {
+    interface SubResourceLocator extends UriHandler{
+    }
+
+    interface UriHandler {
         UriTemplate getUriTemplate();
     }
 
