@@ -16,13 +16,6 @@ public interface UriHandler {
 class UriHandlers {
 
     public static <T extends UriHandler, R> Optional<R>
-    match(String path, List<T> handlers,
-          Function<UriTemplate.MatchResult, Boolean> matchFunction,
-          Function<Optional<Result<T>>, Optional<R>> mapper) {
-        return mapper.apply(matched(path, handlers, matchFunction));
-    }
-
-    public static <T extends UriHandler, R> Optional<R>
     mapMatched(String path, List<T> handlers,
                BiFunction<Optional<UriTemplate.MatchResult>, T, Optional<R>> mapper) {
         return matched(path, handlers, r -> true).flatMap(r -> mapper.apply(r.matched(), r.handler()));
@@ -45,7 +38,7 @@ class UriHandlers {
                 .sorted().findFirst();
     }
 
-    static record Result<T extends UriHandler>
+    private record Result<T extends UriHandler>
             (Optional<UriTemplate.MatchResult> matched, T handler,
              Function<UriTemplate.MatchResult, Boolean> matchFunction) implements Comparable<Result<T>> {
 
