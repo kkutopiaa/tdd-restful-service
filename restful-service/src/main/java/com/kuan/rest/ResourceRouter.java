@@ -66,12 +66,16 @@ class DefaultResourceRoot implements ResourceRouter {
                 .orElseGet(() -> Response.noContent().build());
     }
 
-    private Optional<ResourceMethod> getMethod(HttpServletRequest request, String path, UriInfoBuilder uriInfoBuilder, List<RootResource> rootResources) {
-        return rootResources.stream()
-                .map(resource -> match(path, resource))
-                .filter(Result::isMatched)
-                .sorted().findFirst()
-                .flatMap(result -> result.findResourceMethod(request, uriInfoBuilder));
+    private Optional<ResourceMethod> getMethod(HttpServletRequest request, String path, UriInfoBuilder uriInfoBuilder,
+                                               List<RootResource> rootResources) {
+        return com.kuan.rest.Result.match(path, rootResources, r -> true,
+                r -> findResourceMethod(r, request, uriInfoBuilder));
+    }
+
+    private Optional<ResourceMethod> findResourceMethod(Optional<com.kuan.rest.Result<RootResource>> result,
+                                                        HttpServletRequest request, UriInfoBuilder uriInfoBuilder) {
+        return result.flatMap(r -> r.handler().match(r.matched().get(), request.getMethod(),
+                Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder));
     }
 
     private Result match(String path, RootResource resource) {
