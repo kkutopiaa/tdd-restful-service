@@ -115,8 +115,8 @@ class ResourceMethods {
                 .flatMap(methods -> match(path, methods));
     }
 
-    private static Optional<ResourceRouter.ResourceMethod> match(String path,
-                                                                 List<ResourceRouter.ResourceMethod> methods) {
+    // 真正想重用的方法
+    public static <T extends ResourceRouter.UriHandler> Optional<T> match(String path, List<T> methods) {
         return methods.stream()
                 .map(m -> ResourceMethods.match(path, m))
                 .filter(Result::isMatched)
