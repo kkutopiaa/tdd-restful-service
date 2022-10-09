@@ -77,30 +77,6 @@ class DefaultResourceRoot implements ResourceRouter {
         return result.flatMap(r -> r.handler().match(r.matched().get(), request.getMethod(),
                 Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder));
     }
-
-    private Result match(String path, RootResource resource) {
-        return new Result(resource.getUriTemplate().match(path), resource);
-    }
-
-    record Result(Optional<UriTemplate.MatchResult> matched, RootResource resource) implements Comparable<Result> {
-
-        private boolean isMatched() {
-            return matched.isPresent();
-        }
-
-        @Override
-        public int compareTo(Result o) {
-            return matched.flatMap(x -> o.matched.map(x::compareTo))
-                    .orElse(0);
-        }
-
-        private Optional<ResourceMethod> findResourceMethod(HttpServletRequest request, UriInfoBuilder uriInfoBuilder) {
-            return matched.flatMap(result -> resource.match(result, request.getMethod(),
-                    Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder));
-        }
-    }
-
-
 }
 
 
