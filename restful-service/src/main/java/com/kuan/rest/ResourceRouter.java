@@ -250,9 +250,7 @@ class SubResourceLocators {
     }
 
     public Optional<ResourceRouter.SubResourceLocator> findSubResource(String path) {
-        return subResourceLocators.stream()
-                .filter(l -> l.getUriTemplate().match(path).isPresent())
-                .findFirst();
+        return Result.match(path, subResourceLocators);
     }
 
     static class DefaultSubResourceLocator implements ResourceRouter.SubResourceLocator {
