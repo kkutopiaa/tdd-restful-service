@@ -180,3 +180,7 @@ UriTemplate 完成了任务列表的开发后，细化一下 RootResource/Resour
 现阶段的 UriTemplate 整体的架构愿景如下： 
 ![](imgs/10.UriTemplate的架构愿景.png)
 ![](imgs/11.UriTemplate的时序图.png)
+
+引入 UriHandler 之后， UriTemplate 的架构愿景发生了一点变化（时序图仍然一样）：
+![](imgs/12.UriTemplate的架构愿景-引入UriHandler之后.png)
+
