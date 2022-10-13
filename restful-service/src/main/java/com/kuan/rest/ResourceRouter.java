@@ -229,6 +229,7 @@ class SubResourceLocators {
 
             try {
                 Object subResource = method.invoke(resource);
+                uriInfoBuilder.addMatchedResource(subResource);
                 return new SubResource(subResource);
             } catch (Exception e) {
                 throw new RuntimeException(e);

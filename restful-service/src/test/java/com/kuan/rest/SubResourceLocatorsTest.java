@@ -93,6 +93,11 @@ public class SubResourceLocatorsTest {
             return matchedResult.get(matchedResult.size() - 1);
         }
 
+        @Override
+        public void addMatchedResource(Object resource) {
+            matchedResult.add(resource);
+        }
+
     }
 
 }
