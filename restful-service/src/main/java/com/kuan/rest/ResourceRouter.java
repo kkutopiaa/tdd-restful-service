@@ -8,6 +8,7 @@ import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
@@ -224,7 +225,15 @@ class SubResourceLocators {
 
         @Override
         public ResourceRouter.Resource getSubResource(UriInfoBuilder uriInfoBuilder) {
-            return null;
+            Object resource = uriInfoBuilder.getLastMatchedResource();
+
+            try {
+                Object subResource = method.invoke(resource);
+                return new SubResource(subResource);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
         }
     }
 }
