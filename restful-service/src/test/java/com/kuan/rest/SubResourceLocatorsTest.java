@@ -2,9 +2,8 @@ package com.kuan.rest;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.MediaType;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -47,7 +46,9 @@ public class SubResourceLocatorsTest {
         UriTemplate.MatchResult result = Mockito.mock(UriTemplate.MatchResult.class);
         Mockito.when(result.getRemaining()).thenReturn(null);
 
-        ResourceRouter.Resource subResource = subResourceLocator.getSubResource(uriInfoBuilder);
+        ResourceRouter.Resource subResource =
+                subResourceLocator.getSubResource(Mockito.mock(ResourceContext.class), uriInfoBuilder);
+
         ResourceRouter.ResourceMethod method = subResource.match(result, "GET",
                 new String[]{MediaType.TEXT_PLAIN}, uriInfoBuilder).get();
 
