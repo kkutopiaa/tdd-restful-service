@@ -51,6 +51,7 @@ public class SubResourceLocatorsTest {
                 new String[]{MediaType.TEXT_PLAIN}, uriInfoBuilder).get();
 
         assertEquals("Message.content", method.toString());
+        assertEquals("hello", ((Message) uriInfoBuilder.getLastMatchedResource()).message);
     }
 
 
@@ -59,12 +60,18 @@ public class SubResourceLocatorsTest {
 
         @Path("/hello")
         public Message hello() {
-            return new Message();
+            return new Message("hello");
         }
 
     }
 
     static class Message {
+
+        private String message;
+
+        public Message(String message) {
+            this.message = message;
+        }
 
         @GET
         public String content() {
