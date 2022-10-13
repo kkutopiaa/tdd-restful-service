@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -38,8 +41,7 @@ public class SubResourceLocatorsTest {
     public void should_call_locator_method_to_generate_sub_resource() {
         SubResourceLocators locators = new SubResourceLocators(Messages.class.getMethods());
         ResourceRouter.SubResourceLocator subResourceLocator = locators.findSubResource("/hello").get();
-        UriInfoBuilder uriInfoBuilder = Mockito.mock(UriInfoBuilder.class);
-        Mockito.when(uriInfoBuilder.getLastMatchedResource()).thenReturn(new Messages());
+        UriInfoBuilder uriInfoBuilder = new StubUriInfoBuilder();
 
         ResourceRouter.Resource subResource = subResourceLocator.getSubResource(uriInfoBuilder);
 
@@ -67,6 +69,21 @@ public class SubResourceLocatorsTest {
         @GET
         public String content() {
             return "content";
+        }
+
+    }
+
+    class StubUriInfoBuilder implements UriInfoBuilder {
+
+        private List<Object> matchedResult = new ArrayList<>();
+
+        public StubUriInfoBuilder() {
+            matchedResult.add(new Messages());
+        }
+
+        @Override
+        public Object getLastMatchedResource() {
+            return matchedResult.get(matchedResult.size() - 1);
         }
 
     }
