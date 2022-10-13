@@ -38,14 +38,15 @@ public class SubResourceLocatorsTest {
     public void should_call_locator_method_to_generate_sub_resource() {
         SubResourceLocators locators = new SubResourceLocators(Messages.class.getMethods());
         ResourceRouter.SubResourceLocator subResourceLocator = locators.findSubResource("/hello").get();
+        UriInfoBuilder uriInfoBuilder = Mockito.mock(UriInfoBuilder.class);
+        Mockito.when(uriInfoBuilder.getLastMatchedResource()).thenReturn(new Messages());
 
-        // 还没有 getSubResource 方法，编译不会通过
-        ResourceRouter.Resource subResource = subResourceLocator.getSubResource();
+        ResourceRouter.Resource subResource = subResourceLocator.getSubResource(uriInfoBuilder);
 
         UriTemplate.MatchResult result = Mockito.mock(UriTemplate.MatchResult.class);
         Mockito.when(result.getRemaining()).thenReturn(null);
         ResourceRouter.ResourceMethod method = subResource.match(result, "GET",
-                new String[]{MediaType.TEXT_PLAIN}, Mockito.mock(UriInfoBuilder.class)).get();
+                new String[]{MediaType.TEXT_PLAIN}, uriInfoBuilder).get();
 
         assertEquals("Message.content", method.toString());
     }

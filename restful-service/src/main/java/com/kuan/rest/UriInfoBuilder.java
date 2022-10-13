@@ -7,4 +7,6 @@ interface UriInfoBuilder {
     void addParameter(String name, String value);
 
     String getUnmatchedPath();
+
+    Object getLastMatchedResource();
 }
