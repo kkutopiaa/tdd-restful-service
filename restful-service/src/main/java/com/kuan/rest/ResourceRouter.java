@@ -114,9 +114,12 @@ class RootResourceClass implements ResourceRouter.RootResource {
     }
 
     @Override
-    public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method,
-                                                         String[] mediaTypes, ResourceContext resourceContext, UriInfoBuilder builder) {
+    public Optional<ResourceRouter.ResourceMethod>
+    match(UriTemplate.MatchResult result, String method, String[] mediaTypes,
+          ResourceContext resourceContext, UriInfoBuilder builder) {
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
+        Object resource = resourceContext.getResource(resourceClass);
+        builder.addMatchedResource(resource);
         return resourceMethods.findResourceMethods(remaining, method);
     }
 
