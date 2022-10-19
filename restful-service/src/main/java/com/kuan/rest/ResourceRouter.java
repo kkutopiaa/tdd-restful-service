@@ -54,7 +54,7 @@ class DefaultResourceRoot implements ResourceRouter {
         UriInfoBuilder uriInfoBuilder = runtime.createUriInfoBuilder(request);
         List<RootResource> rootResources = this.rootResources;
         Optional<ResourceMethod> method = UriHandlers.mapMatched(path, rootResources,
-                (result, resource) -> getResourceMethod(request, uriInfoBuilder, result, resource));
+                (result, resource) -> getResourceMethod(request, resourceContext, uriInfoBuilder, result, resource));
 
         if (method.isEmpty()) {
             return (OutboundResponse) Response.status(Response.Status.NOT_FOUND).build();
@@ -65,10 +65,12 @@ class DefaultResourceRoot implements ResourceRouter {
                 .orElseGet(() -> Response.noContent().build());
     }
 
-    private static Optional<ResourceMethod> getResourceMethod(HttpServletRequest request, UriInfoBuilder uriInfoBuilder,
-                                                              Optional<UriTemplate.MatchResult> matched, RootResource handler) {
+    private static Optional<ResourceMethod>
+    getResourceMethod(HttpServletRequest request, ResourceContext resourceContext, UriInfoBuilder uriInfoBuilder,
+                      Optional<UriTemplate.MatchResult> matched, RootResource handler) {
         return handler.match(matched.get(), request.getMethod(),
-                Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), null, uriInfoBuilder);
+                Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new),
+                resourceContext, uriInfoBuilder);
     }
 }
 
