@@ -18,7 +18,8 @@ public interface ResourceRouter {
     OutboundResponse dispatch(HttpServletRequest request, ResourceContext resourceContext);
 
     interface Resource {
-        Optional<ResourceMethod> match(UriTemplate.MatchResult result, String method, String[] mediaTypes, UriInfoBuilder builder);
+        Optional<ResourceMethod> match(UriTemplate.MatchResult result, String method, String[] mediaTypes,
+                                       ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
     interface RootResource extends Resource, UriHandler {
@@ -67,7 +68,7 @@ class DefaultResourceRoot implements ResourceRouter {
     private static Optional<ResourceMethod> getResourceMethod(HttpServletRequest request, UriInfoBuilder uriInfoBuilder,
                                                               Optional<UriTemplate.MatchResult> matched, RootResource handler) {
         return handler.match(matched.get(), request.getMethod(),
-                Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), uriInfoBuilder);
+                Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new), null, uriInfoBuilder);
     }
 }
 
@@ -112,7 +113,7 @@ class RootResourceClass implements ResourceRouter.RootResource {
 
     @Override
     public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method,
-                                                         String[] mediaTypes, UriInfoBuilder builder) {
+                                                         String[] mediaTypes, ResourceContext resourceContext, UriInfoBuilder builder) {
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
         return resourceMethods.findResourceMethods(remaining, method);
     }
@@ -140,7 +141,7 @@ class SubResource implements ResourceRouter.Resource {
 
     @Override
     public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method,
-                                                         String[] mediaTypes, UriInfoBuilder builder) {
+                                                         String[] mediaTypes, ResourceContext resourceContext, UriInfoBuilder builder) {
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
         return resourceMethods.findResourceMethods(remaining, method);
     }
