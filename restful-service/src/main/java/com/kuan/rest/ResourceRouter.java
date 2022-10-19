@@ -105,22 +105,29 @@ class RootResourceClass implements ResourceRouter.RootResource {
 
     private ResourceMethods resourceMethods;
 
+    private SubResourceLocators subResourceLocators;
+
     public RootResourceClass(Class<?> resourceClass) {
         this.resourceClass = resourceClass;
         this.uriTemplate = new PathUriTemplate(resourceClass.getAnnotation(Path.class).value());
 
         Method[] methods = resourceClass.getMethods();
         this.resourceMethods = new ResourceMethods(methods);
+
+        this.subResourceLocators = new SubResourceLocators(resourceClass.getMethods());
     }
 
     @Override
     public Optional<ResourceRouter.ResourceMethod>
     match(UriTemplate.MatchResult result, String method, String[] mediaTypes,
           ResourceContext resourceContext, UriInfoBuilder builder) {
-        String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
         Object resource = resourceContext.getResource(resourceClass);
         builder.addMatchedResource(resource);
-        return resourceMethods.findResourceMethods(remaining, method);
+
+        String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
+        return resourceMethods.findResourceMethods(remaining, method)
+                .or(() -> subResourceLocators.findSubResourceMethods(remaining, method, mediaTypes,
+                        resourceContext, builder));
     }
 
     @Override
@@ -206,6 +213,15 @@ class SubResourceLocators {
 
     public Optional<ResourceRouter.SubResourceLocator> findSubResource(String path) {
         return UriHandlers.match(path, subResourceLocators);
+    }
+
+    public Optional<ResourceRouter.ResourceMethod>
+    findSubResourceMethods(String path, String method, String[] mediaTypes,
+                           ResourceContext resourceContext, UriInfoBuilder uriInfoBuilder) {
+        return UriHandlers.mapMatched(path, subResourceLocators, (result, locator) ->
+                locator.getSubResource(resourceContext, uriInfoBuilder)
+                        .match(result.get(), method, mediaTypes, resourceContext, uriInfoBuilder)
+        );
     }
 
     static class DefaultSubResourceLocator implements ResourceRouter.SubResourceLocator {

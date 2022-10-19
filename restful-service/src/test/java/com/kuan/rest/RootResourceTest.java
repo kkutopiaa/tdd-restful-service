@@ -48,13 +48,14 @@ public class RootResourceTest {
             /messages/hello,       OPTIONS,    Messages.optionsHello,   OPTIONS and URI match
             /messages/topics/1234, GET,        Messages.topic1234,      GET with multiply choices
             /messages,             GET,        Messages.get,            GET with resource method without Path
-            /messages/1/content,   GET,        Messages.content,        Map to sub-resource method
+            /messages/1/content,   GET,        Message.content,        Map to sub-resource method
             """)
     public void should_match_resource_method_in_root_resource(String path, String httpMethod, String resourceMethod, String context) {
+        StubUriInfoBuilder builder = new StubUriInfoBuilder();
         ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
         UriTemplate.MatchResult result = resource.getUriTemplate().match(path).get();
         ResourceRouter.ResourceMethod method = resource.match(result, httpMethod,
-                new String[]{MediaType.TEXT_PLAIN}, resourceContext, Mockito.mock(UriInfoBuilder.class)).get();
+                new String[]{MediaType.TEXT_PLAIN}, resourceContext, builder).get();
         assertEquals(resourceMethod, method.toString());
     }
 
