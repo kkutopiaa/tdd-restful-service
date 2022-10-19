@@ -48,6 +48,7 @@ public class RootResourceTest {
             /messages/hello,       OPTIONS,    Messages.optionsHello,   OPTIONS and URI match
             /messages/topics/1234, GET,        Messages.topic1234,      GET with multiply choices
             /messages,             GET,        Messages.get,            GET with resource method without Path
+            /messages/1/content,   GET,        Messages.content,        Map to sub-resource method
             """)
     public void should_match_resource_method_in_root_resource(String path, String httpMethod, String resourceMethod, String context) {
         ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
