@@ -7,9 +7,6 @@ import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -78,26 +75,6 @@ public class SubResourceLocatorsTest {
         @GET
         public String content() {
             return "content";
-        }
-
-    }
-
-    class StubUriInfoBuilder implements UriInfoBuilder {
-
-        private List<Object> matchedResult = new ArrayList<>();
-
-        public StubUriInfoBuilder() {
-            matchedResult.add(new Messages());
-        }
-
-        @Override
-        public Object getLastMatchedResource() {
-            return matchedResult.get(matchedResult.size() - 1);
-        }
-
-        @Override
-        public void addMatchedResource(Object resource) {
-            matchedResult.add(resource);
         }
 
     }

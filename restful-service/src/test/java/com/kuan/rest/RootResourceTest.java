@@ -2,7 +2,6 @@ package com.kuan.rest;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -67,6 +66,21 @@ public class RootResourceTest {
                         Mockito.mock(UriInfoBuilder.class))
                 .isEmpty());
     }
+
+
+    @Test
+    public void should_add_last_match_resource_to_uri_info_builder() {
+        StubUriInfoBuilder uriInfoBuilder = new StubUriInfoBuilder();
+
+        RootResourceClass resource = new RootResourceClass(Messages.class);
+        UriTemplate.MatchResult result = resource.getUriTemplate().match("/messages").get();
+
+        resource.match(result, "GET", new String[]{MediaType.TEXT_PLAIN}, uriInfoBuilder);
+
+        assertTrue(uriInfoBuilder.getLastMatchedResource() instanceof Messages);
+
+    }
+
 
     @Path("/missing-messages")
     static class MissingMessages {
