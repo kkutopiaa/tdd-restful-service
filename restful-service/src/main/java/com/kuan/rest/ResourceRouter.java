@@ -146,16 +146,22 @@ class SubResource implements ResourceRouter.Resource {
     private Object subResource;
     private ResourceMethods resourceMethods;
 
+    private SubResourceLocators subResourceLocators;
+
     public SubResource(Object subResource) {
         this.subResource = subResource;
         this.resourceMethods = new ResourceMethods(subResource.getClass().getMethods());
+        this.subResourceLocators = new SubResourceLocators(subResource.getClass().getMethods());
     }
 
     @Override
-    public Optional<ResourceRouter.ResourceMethod> match(UriTemplate.MatchResult result, String method,
-                                                         String[] mediaTypes, ResourceContext resourceContext, UriInfoBuilder builder) {
+    public Optional<ResourceRouter.ResourceMethod>
+    match(UriTemplate.MatchResult result, String method, String[] mediaTypes,
+          ResourceContext resourceContext, UriInfoBuilder builder) {
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
-        return resourceMethods.findResourceMethods(remaining, method);
+        return resourceMethods.findResourceMethods(remaining, method)
+                .or(() -> subResourceLocators.findSubResourceMethods(remaining, method,
+                        mediaTypes, resourceContext, builder));
     }
 }
 
