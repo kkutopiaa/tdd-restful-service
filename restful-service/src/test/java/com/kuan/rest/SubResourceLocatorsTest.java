@@ -5,6 +5,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,13 +18,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class SubResourceLocatorsTest {
 
-    @Test
-    public void should_match_path_with_url() {
+    @ParameterizedTest(name = "{2}")
+    @CsvSource(textBlock = """
+            /hello,                 Messages.hello,         fully matched with URI
+            /hello/content,         Messages.hello,         matched with URI
+            /topics/1234,           Messages.message1234,   multiple matched choices      
+            """)
+    public void should_match_path_with_url(String path, String resourceMethod, String context) {
         SubResourceLocators locators = new SubResourceLocators(Messages.class.getMethods());
 
-        ResourceRouter.SubResourceLocator locator = locators.findSubResource("/hello").get();
+        ResourceRouter.SubResourceLocator locator = locators.findSubResource(path).get();
 
-        assertEquals("Messages.hello", locator.toString());
+        assertEquals(resourceMethod, locator.toString());
     }
 
     @Test
@@ -60,6 +67,16 @@ public class SubResourceLocatorsTest {
         @Path("/hello")
         public Message hello() {
             return new Message("hello");
+        }
+
+        @Path("/topics/{id}")
+        public Message id() {
+            return new Message("id");
+        }
+
+        @Path("/topics/1234")
+        public Message message1234() {
+            return new Message("1234");
         }
 
     }
