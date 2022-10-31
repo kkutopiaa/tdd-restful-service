@@ -33,6 +33,9 @@ public interface ResourceRouter {
 
     interface SubResourceLocator extends UriHandler {
         Resource getSubResource(ResourceContext resourceContext, UriInfoBuilder uriInfoBuilder);
+
+        Optional<ResourceMethod> match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
+                                       ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
 }
@@ -236,6 +239,7 @@ class SubResourceLocators {
 
         }
 
+        @Override
         public Optional<ResourceRouter.ResourceMethod>
         match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
               ResourceContext resourceContext, UriInfoBuilder builder) {
