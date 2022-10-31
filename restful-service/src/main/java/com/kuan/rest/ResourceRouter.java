@@ -200,8 +200,7 @@ class SubResourceLocators {
     findSubResourceMethods(String path, String method, String[] mediaTypes,
                            ResourceContext resourceContext, UriInfoBuilder uriInfoBuilder) {
         return UriHandlers.mapMatched(path, subResourceLocators, (result, locator) ->
-                locator.getSubResource(resourceContext, uriInfoBuilder)
-                        .match(result.get(), method, mediaTypes, resourceContext, uriInfoBuilder)
+                locator.match(result.get(), method, mediaTypes, resourceContext, uriInfoBuilder)
         );
     }
 
