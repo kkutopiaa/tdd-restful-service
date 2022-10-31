@@ -18,7 +18,7 @@ public interface ResourceRouter {
     OutboundResponse dispatch(HttpServletRequest request, ResourceContext resourceContext);
 
     interface Resource {
-        Optional<ResourceMethod> match(UriTemplate.MatchResult result, String method, String[] mediaTypes,
+        Optional<ResourceMethod> match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
                                        ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
@@ -31,10 +31,8 @@ public interface ResourceRouter {
         GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
-    interface SubResourceLocator extends UriHandler {
+    interface SubResourceLocator extends Resource, UriHandler {
 
-        Optional<ResourceMethod> match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
-                                       ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
 }
@@ -121,14 +119,14 @@ class RootResourceClass implements ResourceRouter.RootResource {
 
     @Override
     public Optional<ResourceRouter.ResourceMethod>
-    match(UriTemplate.MatchResult result, String method, String[] mediaTypes,
+    match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
           ResourceContext resourceContext, UriInfoBuilder builder) {
         Object resource = resourceContext.getResource(resourceClass);
         builder.addMatchedResource(resource);
 
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
-        return resourceMethods.findResourceMethods(remaining, method)
-                .or(() -> subResourceLocators.findSubResourceMethods(remaining, method, mediaTypes,
+        return resourceMethods.findResourceMethods(remaining, httpMethod)
+                .or(() -> subResourceLocators.findSubResourceMethods(remaining, httpMethod, mediaTypes,
                         resourceContext, builder));
     }
 
@@ -253,11 +251,11 @@ class SubResourceLocators {
 
             @Override
             public Optional<ResourceRouter.ResourceMethod>
-            match(UriTemplate.MatchResult result, String method, String[] mediaTypes,
+            match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
                   ResourceContext resourceContext, UriInfoBuilder builder) {
                 String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
-                return resourceMethods.findResourceMethods(remaining, method)
-                        .or(() -> subResourceLocators.findSubResourceMethods(remaining, method,
+                return resourceMethods.findResourceMethods(remaining, httpMethod)
+                        .or(() -> subResourceLocators.findSubResourceMethods(remaining, httpMethod,
                                 mediaTypes, resourceContext, builder));
             }
         }
