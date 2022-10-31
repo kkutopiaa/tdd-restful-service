@@ -63,7 +63,7 @@ public class RootResourceTest {
 
     @Test
     public void should_match_resource_method_in_sub_resource() {
-        ResourceRouter.Resource resource = new SubResourceLocators.SubResourceLocator.SubResource(new Message());
+        ResourceRouter.Resource resource = new RootResourceClass(new Message(), Mockito.mock(UriTemplate.class));
         UriTemplate.MatchResult result = Mockito.mock(UriTemplate.MatchResult.class);
         when(result.getRemaining()).thenReturn("/content");
 
