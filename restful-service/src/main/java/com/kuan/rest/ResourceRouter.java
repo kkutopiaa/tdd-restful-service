@@ -190,14 +190,12 @@ class SubResourceLocators {
 
         static class SubResource implements ResourceRouter.Resource {
 
-            private Object subResource;
             private ResourceMethods resourceMethods;
 
             private SubResourceLocators subResourceLocators;
             private Function<ResourceContext, Object> resource;
 
             public SubResource(Object subResource) {
-                this.subResource = subResource;
                 this.resourceMethods = new ResourceMethods(subResource.getClass().getMethods());
                 this.subResourceLocators = new SubResourceLocators(subResource.getClass().getMethods());
                 this.resource = rc -> subResource;
@@ -237,6 +235,13 @@ class RootResourceClass implements ResourceRouter.RootResource {
 
         this.subResourceLocators = new SubResourceLocators(resourceClass.getMethods());
         this.resource = rc -> rc.getResource(resourceClass);
+    }
+
+    public RootResourceClass(Object subResource, UriTemplate uriTemplate) {
+        this.uriTemplate = uriTemplate;
+        this.resourceMethods = new ResourceMethods(subResource.getClass().getMethods());
+        this.subResourceLocators = new SubResourceLocators(subResource.getClass().getMethods());
+        this.resource = rc -> subResource;
     }
 
     @Override
