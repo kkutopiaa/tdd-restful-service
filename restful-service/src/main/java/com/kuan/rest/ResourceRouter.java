@@ -17,12 +17,12 @@ public interface ResourceRouter {
 
     OutboundResponse dispatch(HttpServletRequest request, ResourceContext resourceContext);
 
-    interface Resource {
+    interface Resource extends UriHandler {
         Optional<ResourceMethod> match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
                                        ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
-    interface RootResource extends Resource, UriHandler {
+    interface RootResource extends Resource {
     }
 
     interface ResourceMethod extends UriHandler {
