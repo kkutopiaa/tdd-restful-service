@@ -183,14 +183,14 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
 class SubResourceLocators {
 
-    private List<ResourceRouter.SubResourceLocator> subResourceLocators;
+    private List<ResourceRouter.RootResource> subResourceLocators;
 
     public SubResourceLocators(Method[] methods) {
         subResourceLocators = Arrays.stream(methods)
                 .filter(m -> m.isAnnotationPresent(Path.class)
                         && Arrays.stream(m.getAnnotations())
                         .noneMatch(a -> a.annotationType().isAnnotationPresent(HttpMethod.class)))
-                .map((Function<Method, ResourceRouter.SubResourceLocator>) DefaultSubResourceLocator::new).toList();
+                .map((Function<Method, ResourceRouter.RootResource>) DefaultSubResourceLocator::new).toList();
     }
 
     public Optional<ResourceRouter.ResourceMethod>
