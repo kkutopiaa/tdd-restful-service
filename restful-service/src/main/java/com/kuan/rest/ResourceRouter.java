@@ -22,9 +22,6 @@ public interface ResourceRouter {
                                        ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
-    interface RootResource extends Resource {
-    }
-
     interface ResourceMethod extends UriHandler {
         String getHttpMethod();
 
