@@ -186,7 +186,7 @@ class SubResourceLocators {
                 .filter(m -> m.isAnnotationPresent(Path.class)
                         && Arrays.stream(m.getAnnotations())
                         .noneMatch(a -> a.annotationType().isAnnotationPresent(HttpMethod.class)))
-                .map((Function<Method, ResourceRouter.RootResource>) DefaultSubResourceLocator::new).toList();
+                .map((Function<Method, ResourceRouter.RootResource>) SubResourceLocator::new).toList();
     }
 
     public Optional<ResourceRouter.ResourceMethod>
@@ -197,12 +197,12 @@ class SubResourceLocators {
         );
     }
 
-    static class DefaultSubResourceLocator implements ResourceRouter.RootResource {
+    static class SubResourceLocator implements ResourceRouter.RootResource {
 
         private PathUriTemplate uriTemplate;
         private Method method;
 
-        public DefaultSubResourceLocator(Method method) {
+        public SubResourceLocator(Method method) {
             this.method = method;
             this.uriTemplate = new PathUriTemplate(method.getAnnotation(Path.class).value());
         }
