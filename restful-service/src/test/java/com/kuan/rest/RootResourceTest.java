@@ -31,7 +31,7 @@ public class RootResourceTest {
 
     @Test
     public void should_get_uri_template_from_path_annotation() {
-        ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
+        ResourceRouter.Resource resource = new RootResourceClass(Messages.class);
         UriTemplate template = resource.getUriTemplate();
         assertTrue(template.match("/messages/hello").isPresent());
     }
@@ -54,7 +54,7 @@ public class RootResourceTest {
     public void should_match_resource_method_in_root_resource(String path, String httpMethod, String resourceMethod,
                                                               String context) {
         StubUriInfoBuilder builder = new StubUriInfoBuilder();
-        ResourceRouter.RootResource resource = new RootResourceClass(Messages.class);
+        ResourceRouter.Resource resource = new RootResourceClass(Messages.class);
         UriTemplate.MatchResult result = resource.getUriTemplate().match(path).get();
         ResourceRouter.ResourceMethod method = resource.match(result, httpMethod,
                 new String[]{MediaType.TEXT_PLAIN}, resourceContext, builder).get();
@@ -79,7 +79,7 @@ public class RootResourceTest {
             """)
     public void should_return_empty_if_not_matched(String uri, String httpMethod, String context) {
         UriInfoBuilder builder = new StubUriInfoBuilder();
-        ResourceRouter.RootResource resource = new RootResourceClass(MissingMessages.class);
+        ResourceRouter.Resource resource = new RootResourceClass(MissingMessages.class);
         UriTemplate.MatchResult result = resource.getUriTemplate().match(uri).get();
         assertTrue(resource.match(result, httpMethod, new String[]{MediaType.TEXT_PLAIN},
                         resourceContext, builder)

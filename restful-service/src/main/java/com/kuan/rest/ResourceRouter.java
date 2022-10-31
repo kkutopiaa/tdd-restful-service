@@ -37,9 +37,9 @@ public interface ResourceRouter {
 class DefaultResourceRoot implements ResourceRouter {
 
     private Runtime runtime;
-    private List<RootResource> rootResources;
+    private List<Resource> rootResources;
 
-    public DefaultResourceRoot(Runtime runtime, List<RootResource> rootResources) {
+    public DefaultResourceRoot(Runtime runtime, List<Resource> rootResources) {
         this.runtime = runtime;
         this.rootResources = rootResources;
     }
@@ -48,7 +48,7 @@ class DefaultResourceRoot implements ResourceRouter {
     public OutboundResponse dispatch(HttpServletRequest request, ResourceContext resourceContext) {
         String path = request.getServletPath();
         UriInfoBuilder uriInfoBuilder = runtime.createUriInfoBuilder(request);
-        List<RootResource> rootResources = this.rootResources;
+        List<Resource> rootResources = this.rootResources;
         Optional<ResourceMethod> method = UriHandlers.mapMatched(path, rootResources,
                 (result, resource) -> getResourceMethod(request, resourceContext, uriInfoBuilder, result, resource));
 
@@ -63,7 +63,7 @@ class DefaultResourceRoot implements ResourceRouter {
 
     private static Optional<ResourceMethod>
     getResourceMethod(HttpServletRequest request, ResourceContext resourceContext, UriInfoBuilder uriInfoBuilder,
-                      Optional<UriTemplate.MatchResult> matched, RootResource handler) {
+                      Optional<UriTemplate.MatchResult> matched, Resource handler) {
         return handler.match(matched.get(), request.getMethod(),
                 Collections.list(request.getHeaders(HttpHeaders.ACCEPT)).toArray(String[]::new),
                 resourceContext, uriInfoBuilder);
@@ -136,14 +136,14 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
 class SubResourceLocators {
 
-    private List<ResourceRouter.RootResource> subResourceLocators;
+    private List<ResourceRouter.Resource> subResourceLocators;
 
     public SubResourceLocators(Method[] methods) {
         subResourceLocators = Arrays.stream(methods)
                 .filter(m -> m.isAnnotationPresent(Path.class)
                         && Arrays.stream(m.getAnnotations())
                         .noneMatch(a -> a.annotationType().isAnnotationPresent(HttpMethod.class)))
-                .map((Function<Method, ResourceRouter.RootResource>) SubResourceLocator::new).toList();
+                .map((Function<Method, ResourceRouter.Resource>) SubResourceLocator::new).toList();
     }
 
     public Optional<ResourceRouter.ResourceMethod>
