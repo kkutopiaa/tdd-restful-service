@@ -9,8 +9,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 /**
@@ -100,6 +99,10 @@ public class RootResourceTest {
 
     }
 
+    @Test
+    public void should_throw_illegal_argument_exception_if_root_resource_not_have_path_annotation() {
+        assertThrows(IllegalArgumentException.class, () -> new ResourceHandler(Message.class));
+    }
 
     @Path("/missing-messages")
     static class MissingMessages {
