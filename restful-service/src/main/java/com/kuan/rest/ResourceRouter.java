@@ -32,7 +32,6 @@ public interface ResourceRouter {
     }
 
     interface SubResourceLocator extends UriHandler {
-        Resource getSubResource(ResourceContext resourceContext, UriInfoBuilder uriInfoBuilder);
 
         Optional<ResourceMethod> match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
                                        ResourceContext resourceContext, UriInfoBuilder builder);
@@ -222,20 +221,6 @@ class SubResourceLocators {
         @Override
         public String toString() {
             return method.getDeclaringClass().getSimpleName() + '.' + method.getName();
-        }
-
-        @Override
-        public ResourceRouter.Resource getSubResource(ResourceContext resourceContext, UriInfoBuilder uriInfoBuilder) {
-            Object resource = uriInfoBuilder.getLastMatchedResource();
-
-            try {
-                Object subResource = method.invoke(resource);
-                uriInfoBuilder.addMatchedResource(subResource);
-                return new SubResource(subResource);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-
         }
 
         @Override
