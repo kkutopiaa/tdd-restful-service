@@ -94,8 +94,6 @@ class ResourceMethods {
 }
 
 
-
-
 class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
     private String httpMethod;
@@ -196,19 +194,19 @@ class SubResourceLocators {
             private ResourceMethods resourceMethods;
 
             private SubResourceLocators subResourceLocators;
+            private Function<ResourceContext, Object> resource;
 
             public SubResource(Object subResource) {
                 this.subResource = subResource;
                 this.resourceMethods = new ResourceMethods(subResource.getClass().getMethods());
                 this.subResourceLocators = new SubResourceLocators(subResource.getClass().getMethods());
+                this.resource = rc -> subResource;
             }
 
             @Override
             public Optional<ResourceRouter.ResourceMethod>
             match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
                   ResourceContext resourceContext, UriInfoBuilder builder) {
-                Function<ResourceContext, Object> resource = rc -> subResource;
-
                 builder.addMatchedResource(resource.apply(resourceContext));
 
                 String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
@@ -228,6 +226,7 @@ class RootResourceClass implements ResourceRouter.RootResource {
     private ResourceMethods resourceMethods;
 
     private SubResourceLocators subResourceLocators;
+    private Function<ResourceContext, Object> resource;
 
     public RootResourceClass(Class<?> resourceClass) {
         this.resourceClass = resourceClass;
@@ -237,14 +236,13 @@ class RootResourceClass implements ResourceRouter.RootResource {
         this.resourceMethods = new ResourceMethods(methods);
 
         this.subResourceLocators = new SubResourceLocators(resourceClass.getMethods());
+        this.resource = rc -> rc.getResource(resourceClass);
     }
 
     @Override
     public Optional<ResourceRouter.ResourceMethod>
     match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
           ResourceContext resourceContext, UriInfoBuilder builder) {
-        Function<ResourceContext, Object> resource = rc -> rc.getResource(resourceClass);
-
         builder.addMatchedResource(resource.apply(resourceContext));
 
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
