@@ -48,28 +48,6 @@ public class SubResourceLocatorsTest {
                 Mockito.mock(ResourceContext.class), builder).isPresent());
     }
 
-
-    @Test
-    public void should_call_locator_method_to_generate_sub_resource() {
-        UriInfoBuilder uriInfoBuilder = new StubUriInfoBuilder();
-
-        SubResourceLocators locators = new SubResourceLocators(Messages.class.getMethods());
-        ResourceRouter.SubResourceLocator subResourceLocator = locators.findSubResource("/hello").get();
-
-        UriTemplate.MatchResult result = Mockito.mock(UriTemplate.MatchResult.class);
-        Mockito.when(result.getRemaining()).thenReturn(null);
-
-        ResourceRouter.Resource subResource =
-                subResourceLocator.getSubResource(Mockito.mock(ResourceContext.class), uriInfoBuilder);
-
-        ResourceRouter.ResourceMethod method = subResource.match(result, "GET",
-                new String[]{MediaType.TEXT_PLAIN}, null, uriInfoBuilder).get();
-
-        assertEquals("Message.content", method.toString());
-        assertEquals("hello", ((Message) uriInfoBuilder.getLastMatchedResource()).message);
-    }
-
-
     @Path("/messages")
     static class Messages {
 
