@@ -207,7 +207,9 @@ class SubResourceLocators {
             public Optional<ResourceRouter.ResourceMethod>
             match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
                   ResourceContext resourceContext, UriInfoBuilder builder) {
-                builder.addMatchedResource(subResource);
+                Function<ResourceContext, Object> resource = rc -> subResource;
+
+                builder.addMatchedResource(resource.apply(resourceContext));
 
                 String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
                 return resourceMethods.findResourceMethods(remaining, httpMethod)
@@ -241,8 +243,9 @@ class RootResourceClass implements ResourceRouter.RootResource {
     public Optional<ResourceRouter.ResourceMethod>
     match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
           ResourceContext resourceContext, UriInfoBuilder builder) {
-        Object resource = resourceContext.getResource(resourceClass);
-        builder.addMatchedResource(resource);
+        Function<ResourceContext, Object> resource = rc -> rc.getResource(resourceClass);
+
+        builder.addMatchedResource(resource.apply(resourceContext));
 
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
         return resourceMethods.findResourceMethods(remaining, httpMethod)
