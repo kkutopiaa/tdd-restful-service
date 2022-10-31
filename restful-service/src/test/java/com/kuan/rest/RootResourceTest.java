@@ -26,6 +26,7 @@ public class RootResourceTest {
         rootResource = new Messages();
         resourceContext = Mockito.mock(ResourceContext.class);
         when(resourceContext.getResource(Messages.class)).thenReturn(rootResource);
+        when(resourceContext.getResource(MissingMessages.class)).thenReturn(new MissingMessages());
     }
 
     @Test
@@ -72,14 +73,16 @@ public class RootResourceTest {
 
     @ParameterizedTest(name = "{2}")
     @CsvSource(textBlock = """
-            /missing-messages/1,      GET,      URI not matched
-            /missing-messages,        POST,     Http method not matched
+            /missing-messages/1,        GET,      URI not matched
+            /missing-messages,          POST,     Http method not matched
+            /missing-messages/sub/miss, POST,     No matched sub-resource method
             """)
     public void should_return_empty_if_not_matched(String uri, String httpMethod, String context) {
+        UriInfoBuilder builder = new StubUriInfoBuilder();
         ResourceRouter.RootResource resource = new RootResourceClass(MissingMessages.class);
         UriTemplate.MatchResult result = resource.getUriTemplate().match(uri).get();
         assertTrue(resource.match(result, httpMethod, new String[]{MediaType.TEXT_PLAIN},
-                        resourceContext, Mockito.mock(UriInfoBuilder.class))
+                        resourceContext, builder)
                 .isEmpty());
     }
 
@@ -100,18 +103,21 @@ public class RootResourceTest {
 
     @Path("/missing-messages")
     static class MissingMessages {
-
         @GET
         @Produces(MediaType.TEXT_PLAIN)
         public String get() {
             return "/messages";
         }
 
+        @Path("/sub")
+        public Message getSub() {
+            return new Message();
+        }
+
     }
 
     @Path("/messages")
     static class Messages {
-
         @GET
         @Produces(MediaType.TEXT_PLAIN)
         public String get() {
