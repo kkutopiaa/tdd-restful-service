@@ -179,7 +179,7 @@ class SubResourceLocators {
 
             try {
                 Object subResource = method.invoke(resource);
-                return new RootResourceClass(subResource, uriTemplate)
+                return new ResourceHandler(subResource, uriTemplate)
                         .match(result, httpMethod, mediaTypes, resourceContext, builder);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -189,7 +189,7 @@ class SubResourceLocators {
     }
 }
 
-class RootResourceClass implements ResourceRouter.Resource {
+class ResourceHandler implements ResourceRouter.Resource {
 
     private UriTemplate uriTemplate;
 
@@ -198,7 +198,7 @@ class RootResourceClass implements ResourceRouter.Resource {
     private SubResourceLocators subResourceLocators;
     private Function<ResourceContext, Object> resource;
 
-    public RootResourceClass(Class<?> resourceClass) {
+    public ResourceHandler(Class<?> resourceClass) {
         this.uriTemplate = new PathUriTemplate(resourceClass.getAnnotation(Path.class).value());
 
         Method[] methods = resourceClass.getMethods();
@@ -208,11 +208,11 @@ class RootResourceClass implements ResourceRouter.Resource {
         this.resource = rc -> rc.getResource(resourceClass);
     }
 
-    public RootResourceClass(Object subResource, UriTemplate uriTemplate) {
+    public ResourceHandler(Object resource, UriTemplate uriTemplate) {
         this.uriTemplate = uriTemplate;
-        this.resourceMethods = new ResourceMethods(subResource.getClass().getMethods());
-        this.subResourceLocators = new SubResourceLocators(subResource.getClass().getMethods());
-        this.resource = rc -> subResource;
+        this.resourceMethods = new ResourceMethods(resource.getClass().getMethods());
+        this.subResourceLocators = new SubResourceLocators(resource.getClass().getMethods());
+        this.resource = rc -> resource;
     }
 
     @Override
