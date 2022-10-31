@@ -154,7 +154,7 @@ class SubResourceLocators {
         );
     }
 
-    static class SubResourceLocator implements ResourceRouter.RootResource {
+    static class SubResourceLocator implements ResourceRouter.Resource {
 
         private PathUriTemplate uriTemplate;
         private Method method;
@@ -192,7 +192,7 @@ class SubResourceLocators {
     }
 }
 
-class RootResourceClass implements ResourceRouter.RootResource {
+class RootResourceClass implements ResourceRouter.Resource {
 
     private UriTemplate uriTemplate;
 
