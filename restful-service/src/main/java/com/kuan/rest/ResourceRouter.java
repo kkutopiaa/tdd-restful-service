@@ -189,31 +189,6 @@ class SubResourceLocators {
             }
         }
 
-        static class SubResource implements ResourceRouter.Resource {
-
-            private ResourceMethods resourceMethods;
-
-            private SubResourceLocators subResourceLocators;
-            private Function<ResourceContext, Object> resource;
-
-            public SubResource(Object subResource) {
-                this.resourceMethods = new ResourceMethods(subResource.getClass().getMethods());
-                this.subResourceLocators = new SubResourceLocators(subResource.getClass().getMethods());
-                this.resource = rc -> subResource;
-            }
-
-            @Override
-            public Optional<ResourceRouter.ResourceMethod>
-            match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
-                  ResourceContext resourceContext, UriInfoBuilder builder) {
-                builder.addMatchedResource(resource.apply(resourceContext));
-
-                String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
-                return resourceMethods.findResourceMethods(remaining, httpMethod)
-                        .or(() -> subResourceLocators.findSubResourceMethods(remaining, httpMethod,
-                                mediaTypes, resourceContext, builder));
-            }
-        }
     }
 }
 
