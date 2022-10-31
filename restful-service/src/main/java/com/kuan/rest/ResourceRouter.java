@@ -31,10 +31,6 @@ public interface ResourceRouter {
         GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
-    interface SubResourceLocator extends RootResource {
-
-    }
-
 }
 
 
@@ -201,7 +197,7 @@ class SubResourceLocators {
         );
     }
 
-    static class DefaultSubResourceLocator implements ResourceRouter.SubResourceLocator {
+    static class DefaultSubResourceLocator implements ResourceRouter.RootResource {
 
         private PathUriTemplate uriTemplate;
         private Method method;
