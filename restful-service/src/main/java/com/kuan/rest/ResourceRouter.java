@@ -31,7 +31,7 @@ public interface ResourceRouter {
         GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder);
     }
 
-    interface SubResourceLocator extends Resource, UriHandler {
+    interface SubResourceLocator extends RootResource {
 
     }
 
