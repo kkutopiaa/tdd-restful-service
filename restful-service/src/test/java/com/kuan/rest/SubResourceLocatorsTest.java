@@ -20,16 +20,19 @@ public class SubResourceLocatorsTest {
 
     @ParameterizedTest(name = "{2}")
     @CsvSource(textBlock = """
-            /hello,                 Messages.hello,         fully matched with URI
-            /hello/content,         Messages.hello,         matched with URI
-            /topics/1234,           Messages.message1234,   multiple matched choices      
+            /hello,                 hello,         fully matched with URI
+            /topics/1234,           1234,          multiple matched choices
+            /topics/1,              id,            matched with variable
             """)
     public void should_match_path_with_url(String path, String resourceMethod, String context) {
+        StubUriInfoBuilder builder = new StubUriInfoBuilder();
+
         SubResourceLocators locators = new SubResourceLocators(Messages.class.getMethods());
 
-        ResourceRouter.SubResourceLocator locator = locators.findSubResource(path).get();
+        assertTrue(locators.findSubResourceMethods(path, "GET", new String[]{MediaType.TEXT_PLAIN},
+                Mockito.mock(ResourceContext.class), builder).isPresent());
 
-        assertEquals(resourceMethod, locator.toString());
+        assertEquals(resourceMethod, ((Message) builder.getLastMatchedResource()).message);
     }
 
     @Test
