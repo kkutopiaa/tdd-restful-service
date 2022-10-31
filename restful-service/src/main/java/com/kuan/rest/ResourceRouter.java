@@ -199,20 +199,20 @@ class ResourceHandler implements ResourceRouter.Resource {
     private Function<ResourceContext, Object> resource;
 
     public ResourceHandler(Class<?> resourceClass) {
-        this.uriTemplate = new PathUriTemplate(resourceClass.getAnnotation(Path.class).value());
-
-        Method[] methods = resourceClass.getMethods();
-        this.resourceMethods = new ResourceMethods(methods);
-
-        this.subResourceLocators = new SubResourceLocators(resourceClass.getMethods());
-        this.resource = rc -> rc.getResource(resourceClass);
+        this(resourceClass, new PathUriTemplate(resourceClass.getAnnotation(Path.class).value()),
+                rc -> rc.getResource(resourceClass));
     }
 
     public ResourceHandler(Object resource, UriTemplate uriTemplate) {
+        this(resource.getClass(), uriTemplate, rc -> resource);
+    }
+
+    private ResourceHandler(Class<?> resourceClass, UriTemplate uriTemplate,
+                            Function<ResourceContext, Object> resource) {
         this.uriTemplate = uriTemplate;
-        this.resourceMethods = new ResourceMethods(resource.getClass().getMethods());
-        this.subResourceLocators = new SubResourceLocators(resource.getClass().getMethods());
-        this.resource = rc -> resource;
+        this.resourceMethods = new ResourceMethods(resourceClass.getMethods());
+        this.subResourceLocators = new SubResourceLocators(resourceClass.getMethods());
+        this.resource = resource;
     }
 
     @Override
