@@ -9,8 +9,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @Author: qinxuekuan
@@ -24,7 +23,7 @@ public class SubResourceLocatorsTest {
             /topics/1234,           1234,          multiple matched choices
             /topics/1,              id,            matched with variable
             """)
-    public void should_match_path_with_url(String path, String resourceMethod, String context) {
+    public void should_match_path_with_url(String path, String message, String context) {
         StubUriInfoBuilder builder = new StubUriInfoBuilder();
 
         SubResourceLocators locators = new SubResourceLocators(Messages.class.getMethods());
@@ -32,14 +31,21 @@ public class SubResourceLocatorsTest {
         assertTrue(locators.findSubResourceMethods(path, "GET", new String[]{MediaType.TEXT_PLAIN},
                 Mockito.mock(ResourceContext.class), builder).isPresent());
 
-        assertEquals(resourceMethod, ((Message) builder.getLastMatchedResource()).message);
+        assertEquals(message, ((Message) builder.getLastMatchedResource()).message);
     }
 
-    @Test
-    public void should_return_empty_if_not_match_url() {
+    @ParameterizedTest(name = "{1}")
+    @CsvSource(textBlock = """
+            /missing,               unmatched resource method
+            /hello/content,         unmatched sub-resource method
+            """)
+    public void should_return_empty_if_not_match_url(String path, String context) {
+        StubUriInfoBuilder builder = new StubUriInfoBuilder();
+
         SubResourceLocators locators = new SubResourceLocators(Messages.class.getMethods());
 
-        assertTrue(locators.findSubResource("/missing").isEmpty());
+        assertFalse(locators.findSubResourceMethods(path, "GET", new String[]{MediaType.TEXT_PLAIN},
+                Mockito.mock(ResourceContext.class), builder).isPresent());
     }
 
 
