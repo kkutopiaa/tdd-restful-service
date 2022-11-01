@@ -7,8 +7,7 @@ import org.mockito.Mockito;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.same;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @Author: qxkk
@@ -42,6 +41,23 @@ public class HeadResourceMethodTest {
         HeadResourceMethod headResourceMethod = new HeadResourceMethod(method);
 
         assertEquals(uriTemplate, headResourceMethod.getUriTemplate());
+    }
+
+
+    @Test
+    public void should_delegate_to_method_for_http_method() {
+        ResourceRouter.ResourceMethod method = mock(ResourceRouter.ResourceMethod.class);
+
+        when(method.getHttpMethod()).thenReturn("GET");
+
+        HeadResourceMethod headResourceMethod = new HeadResourceMethod(method);
+
+        // 行为验证，只能验证调用了 getHttpMethod 方法，不能验证方法做了什么工作
+        headResourceMethod.getHttpMethod();
+        verify(method).getHttpMethod();
+
+        // 状态验证
+        assertEquals("GET", headResourceMethod.getHttpMethod());
     }
 
 }

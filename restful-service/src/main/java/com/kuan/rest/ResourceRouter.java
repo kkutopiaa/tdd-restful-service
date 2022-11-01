@@ -110,7 +110,7 @@ class HeadResourceMethod implements ResourceRouter.ResourceMethod {
 
     @Override
     public String getHttpMethod() {
-        return null;
+        return resourceMethod.getHttpMethod();
     }
 
     @Override
