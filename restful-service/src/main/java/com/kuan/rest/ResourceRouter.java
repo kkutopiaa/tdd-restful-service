@@ -93,16 +93,23 @@ class ResourceMethods {
             return findMethod(path, HttpMethod.GET).map(HeadResourceMethod::new);
         }
         if (HttpMethod.OPTIONS.equals(httpMethod)) {
-            return Optional.of(new OptionResourceMethod());
+            return Optional.of(new OptionResourceMethod(path));
         }
         return Optional.empty();
     }
+
     private Optional<ResourceRouter.ResourceMethod> findMethod(String path, String httpMethod) {
         return Optional.ofNullable(resourceMethods.get(httpMethod))
                 .flatMap(methods -> UriHandlers.match(path, methods, r -> r.getRemaining() == null));
     }
 
-    static class OptionResourceMethod implements ResourceRouter.ResourceMethod {
+    class OptionResourceMethod implements ResourceRouter.ResourceMethod {
+        private String path;
+
+        public OptionResourceMethod(String path) {
+            this.path = path;
+        }
+
         @Override
         public String getHttpMethod() {
             return null;
@@ -110,7 +117,12 @@ class ResourceMethods {
 
         @Override
         public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
-            Response response = Response.noContent().build();
+            List<String> methods = List.of(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE,
+                    HttpMethod.OPTIONS, HttpMethod.PATCH, HttpMethod.HEAD);
+            Set<String> allowed = methods.stream()
+                    .filter(method -> findMethod(path, method).isPresent())
+                    .collect(Collectors.toSet());
+            Response response = Response.noContent().allow(allowed).build();
             return new GenericEntity<>(response, Response.class);
         }
 
