@@ -110,7 +110,7 @@ class ResourceMethods {
 
         @Override
         public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
-            Response response = Response.ok().build();
+            Response response = Response.noContent().build();
             return new GenericEntity<>(response, Response.class);
         }
 

@@ -137,6 +137,7 @@ public class RootResourceTest {
         GenericEntity<?> entity = method.call(context, builder);
         Response response = (Response) entity.getEntity();
 
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
         assertEquals(Set.of(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS), response.getAllowedMethods());
     }
 
