@@ -229,8 +229,16 @@ class ResourceHandler implements ResourceRouter.Resource {
 
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
         return resourceMethods.findResourceMethods(remaining, httpMethod)
+                .or(() -> alternative(remaining, httpMethod))
                 .or(() -> subResourceLocators.findSubResourceMethods(remaining, httpMethod, mediaTypes,
                         resourceContext, builder));
+    }
+
+    private Optional<ResourceRouter.ResourceMethod> alternative(String remaining, String httpMethod) {
+        if ("HEAD".equals(httpMethod)) {
+            return resourceMethods.findResourceMethods(remaining, "GET");
+        }
+        return Optional.empty();
     }
 
     @Override
