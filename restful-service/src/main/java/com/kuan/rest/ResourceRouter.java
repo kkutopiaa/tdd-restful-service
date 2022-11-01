@@ -89,14 +89,36 @@ class ResourceMethods {
     }
 
     private Optional<ResourceRouter.ResourceMethod> findAlternative(String path, String httpMethod) {
-        return "HEAD".equals(httpMethod)
-                ? findMethod(path, "GET").map(HeadResourceMethod::new)
-                : Optional.empty();
+        if (HttpMethod.HEAD.equals(httpMethod)) {
+            return findMethod(path, HttpMethod.GET).map(HeadResourceMethod::new);
+        }
+        if (HttpMethod.OPTIONS.equals(httpMethod)) {
+            return Optional.of(new OptionResourceMethod());
+        }
+        return Optional.empty();
     }
     private Optional<ResourceRouter.ResourceMethod> findMethod(String path, String httpMethod) {
         return Optional.ofNullable(resourceMethods.get(httpMethod))
                 .flatMap(methods -> UriHandlers.match(path, methods, r -> r.getRemaining() == null));
     }
+
+    class OptionResourceMethod implements ResourceRouter.ResourceMethod {
+        @Override
+        public String getHttpMethod() {
+            return null;
+        }
+
+        @Override
+        public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
+            return null;
+        }
+
+        @Override
+        public UriTemplate getUriTemplate() {
+            return null;
+        }
+    }
+
 
 }
 
