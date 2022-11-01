@@ -1,15 +1,14 @@
 package com.kuan.rest;
 
 import jakarta.ws.rs.container.ResourceContext;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.lang.reflect.Method;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @Author: qxkk
@@ -32,5 +31,17 @@ public class HeadResourceMethodTest {
         Mockito.verify(method).call(same(context), same(builder));
     }
 
+
+    @Test
+    public void should_delegate_to_method_for_uri_template() {
+        ResourceRouter.ResourceMethod method = mock(ResourceRouter.ResourceMethod.class);
+
+        UriTemplate uriTemplate = mock(UriTemplate.class);
+        when(method.getUriTemplate()).thenReturn(uriTemplate);
+
+        HeadResourceMethod headResourceMethod = new HeadResourceMethod(method);
+
+        assertEquals(uriTemplate, headResourceMethod.getUriTemplate());
+    }
 
 }

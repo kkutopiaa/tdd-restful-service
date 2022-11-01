@@ -120,8 +120,9 @@ class HeadResourceMethod implements ResourceRouter.ResourceMethod {
 
     @Override
     public UriTemplate getUriTemplate() {
-        return null;
+        return resourceMethod.getUriTemplate();
     }
+
 }
 
 
