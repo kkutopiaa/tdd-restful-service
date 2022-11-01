@@ -115,7 +115,7 @@ class HeadResourceMethod implements ResourceRouter.ResourceMethod {
 
     @Override
     public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
-        return null;
+        return resourceMethod.call(resourceContext, builder);
     }
 
     @Override
