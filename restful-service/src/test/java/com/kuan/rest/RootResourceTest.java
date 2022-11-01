@@ -2,14 +2,20 @@ package com.kuan.rest;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
 
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -112,6 +118,26 @@ public class RootResourceTest {
         ResourceRouter.ResourceMethod method = resourceMethods.findResourceMethods(result.getRemaining(), "HEAD").get();
 
         assertInstanceOf(HeadResourceMethod.class, method);
+    }
+
+    @Test
+    public void should_get_options_for_given_uri() {
+        RuntimeDelegate delegate = mock(RuntimeDelegate.class);
+        RuntimeDelegate.setInstance(delegate);
+        when(delegate.createResponseBuilder()).thenReturn(new StubResponseBuilder());
+
+        ResourceContext context = mock(ResourceContext.class);
+        UriInfoBuilder builder = mock(UriInfoBuilder.class);
+
+        ResourceMethods resourceMethods = new ResourceMethods(Messages.class.getMethods());
+        UriTemplate.MatchResult result = new PathUriTemplate("/messages").match("/messages/head").get();
+
+        ResourceRouter.ResourceMethod method = resourceMethods.findResourceMethods(result.getRemaining(), "OPTIONS").get();
+
+        GenericEntity<?> entity = method.call(context, builder);
+        Response response = (Response) entity.getEntity();
+
+        assertEquals(Set.of(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS), response.getAllowedMethods());
     }
 
     @Path("/missing-messages")
