@@ -102,7 +102,7 @@ class ResourceMethods {
                 .flatMap(methods -> UriHandlers.match(path, methods, r -> r.getRemaining() == null));
     }
 
-    class OptionResourceMethod implements ResourceRouter.ResourceMethod {
+    static class OptionResourceMethod implements ResourceRouter.ResourceMethod {
         @Override
         public String getHttpMethod() {
             return null;
@@ -110,7 +110,8 @@ class ResourceMethods {
 
         @Override
         public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
-            return null;
+            Response response = Response.ok().build();
+            return new GenericEntity<>(response, Response.class);
         }
 
         @Override
