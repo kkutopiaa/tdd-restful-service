@@ -122,6 +122,10 @@ class ResourceMethods {
             Set<String> allowed = methods.stream()
                     .filter(method -> findMethod(path, method).isPresent())
                     .collect(Collectors.toSet());
+            allowed.add(HttpMethod.OPTIONS);
+            if (allowed.contains(HttpMethod.GET)) {
+                allowed.add(HttpMethod.HEAD);
+            }
             Response response = Response.noContent().allow(allowed).build();
             return new GenericEntity<>(response, Response.class);
         }
