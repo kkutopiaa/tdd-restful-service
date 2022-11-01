@@ -99,6 +99,24 @@ class ResourceMethods {
 
 }
 
+class HeadResourceMethod implements ResourceRouter.ResourceMethod {
+
+    @Override
+    public String getHttpMethod() {
+        return null;
+    }
+
+    @Override
+    public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
+        return null;
+    }
+
+    @Override
+    public UriTemplate getUriTemplate() {
+        return null;
+    }
+}
+
 
 class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 

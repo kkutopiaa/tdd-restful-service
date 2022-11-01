@@ -105,6 +105,16 @@ public class RootResourceTest {
         assertThrows(IllegalArgumentException.class, () -> new ResourceHandler(Message.class));
     }
 
+    @Test
+    public void should_convert_get_resource_method_to_head_resource_method() {
+        ResourceMethods resourceMethods = new ResourceMethods(Messages.class.getMethods());
+        UriTemplate.MatchResult result = new PathUriTemplate("/messages").match("/messages/head").get();
+
+        ResourceRouter.ResourceMethod method = resourceMethods.findResourceMethods(result.getRemaining(), "HEAD").get();
+
+        assertInstanceOf(HeadResourceMethod.class, method);
+    }
+
     @Path("/missing-messages")
     static class MissingMessages {
         @GET
@@ -208,6 +218,13 @@ public class RootResourceTest {
         @Path("/special")
         public String getSpecial() {
             return "special";
+        }
+
+        @GET
+        @Path("/head")
+        @Produces(MediaType.TEXT_PLAIN)
+        public String getHead() {
+            return "head";
         }
     }
 
