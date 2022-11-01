@@ -132,13 +132,37 @@ public class RootResourceTest {
         ResourceMethods resourceMethods = new ResourceMethods(Messages.class.getMethods());
         UriTemplate.MatchResult result = new PathUriTemplate("/messages").match("/messages/head").get();
 
-        ResourceRouter.ResourceMethod method = resourceMethods.findResourceMethods(result.getRemaining(), "OPTIONS").get();
+        ResourceRouter.ResourceMethod method =
+                resourceMethods.findResourceMethods(result.getRemaining(), HttpMethod.OPTIONS).get();
 
         GenericEntity<?> entity = method.call(context, builder);
         Response response = (Response) entity.getEntity();
 
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
         assertEquals(Set.of(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS), response.getAllowedMethods());
+    }
+
+
+    @Test
+    public void should_not_include_head_in_options_if_given_uri_not_have_get_method() {
+        RuntimeDelegate delegate = mock(RuntimeDelegate.class);
+        RuntimeDelegate.setInstance(delegate);
+        when(delegate.createResponseBuilder()).thenReturn(new StubResponseBuilder());
+
+        ResourceContext context = mock(ResourceContext.class);
+        UriInfoBuilder builder = mock(UriInfoBuilder.class);
+
+        ResourceMethods resourceMethods = new ResourceMethods(Messages.class.getMethods());
+        UriTemplate.MatchResult result = new PathUriTemplate("/messages").match("/messages/no-head").get();
+
+        ResourceRouter.ResourceMethod method =
+                resourceMethods.findResourceMethods(result.getRemaining(), HttpMethod.OPTIONS).get();
+
+        GenericEntity<?> entity = method.call(context, builder);
+        Response response = (Response) entity.getEntity();
+
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+        assertEquals(Set.of(HttpMethod.POST, HttpMethod.OPTIONS), response.getAllowedMethods());
     }
 
     @Path("/missing-messages")
@@ -251,6 +275,12 @@ public class RootResourceTest {
         @Produces(MediaType.TEXT_PLAIN)
         public String getHead() {
             return "head";
+        }
+
+        @POST
+        @Path("/no-head")
+        @Produces(MediaType.TEXT_PLAIN)
+        public void postNoHead() {
         }
     }
 
