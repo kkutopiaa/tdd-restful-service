@@ -49,6 +49,7 @@ public class RootResourceTest {
             /messages,             GET,        Messages.get,            GET with resource method without Path
             /messages/1/content,   GET,        Message.content,         Map to sub-resource method
             /messages/1/body/get,  GET,        MessageBody.get,         Map to sub-sub-resource method
+            /messages/special,     HEAD,       Messages.getSpecial,     Map to head request to get resource method
             """)
     public void should_match_resource_method_in_root_resource(String path, String httpMethod, String resourceMethod,
                                                               String context) {
@@ -203,6 +204,11 @@ public class RootResourceTest {
             return new Message();
         }
 
+        @GET
+        @Path("/special")
+        public String getSpecial() {
+            return "special";
+        }
     }
 
 
