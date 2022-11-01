@@ -117,6 +117,10 @@ class ResourceMethods {
 
         @Override
         public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
+            return new GenericEntity<>(Response.noContent().allow(findAllowedMethods()).build(), Response.class);
+        }
+
+        private Set<String> findAllowedMethods() {
             List<String> methods = List.of(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE,
                     HttpMethod.OPTIONS, HttpMethod.PATCH, HttpMethod.HEAD);
             Set<String> allowed = methods.stream()
@@ -126,8 +130,7 @@ class ResourceMethods {
             if (allowed.contains(HttpMethod.GET)) {
                 allowed.add(HttpMethod.HEAD);
             }
-            Response response = Response.noContent().allow(allowed).build();
-            return new GenericEntity<>(response, Response.class);
+            return allowed;
         }
 
         @Override
