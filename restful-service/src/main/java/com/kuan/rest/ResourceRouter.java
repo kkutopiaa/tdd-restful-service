@@ -54,7 +54,12 @@ class DefaultResourceRoot implements ResourceRouter {
         }
 
         return (OutboundResponse) method.map(m -> m.call(resourceContext, uriInfoBuilder))
-                .map(entity -> Response.ok(entity).build())
+                .map(entity -> {
+                    if (entity.getEntity() instanceof Response) {
+                        return (Response) entity.getEntity();
+                    }
+                    return Response.ok(entity).build();
+                })
                 .orElseGet(() -> Response.noContent().build());
     }
 
