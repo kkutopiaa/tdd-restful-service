@@ -3,10 +3,12 @@ package com.kuan.rest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -206,8 +208,16 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
     @Override
     public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
         try {
-            Object result = method.invoke(builder.getLastMatchedResource());
-            return new GenericEntity(result, method.getGenericReturnType());
+            UriInfo uriInfo = builder.createUriInfo();
+
+            Object[] parameters = Arrays.stream(method.getParameters()).map(parameter -> {
+                String name = parameter.getAnnotation(PathParam.class).value();
+                List<String> values = uriInfo.getPathParameters().get(name);
+                return values.get(0);
+            }).toArray();
+
+            Object result = method.invoke(builder.getLastMatchedResource(), parameters);
+            return result != null ? new GenericEntity(result, method.getGenericReturnType()) : null;
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
