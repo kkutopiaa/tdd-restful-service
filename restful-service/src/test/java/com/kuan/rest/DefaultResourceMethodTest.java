@@ -3,6 +3,7 @@ package com.kuan.rest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MultivaluedHashMap;
@@ -43,6 +44,7 @@ public class DefaultResourceMethodTest {
         when(builder.getLastMatchedResource()).thenReturn(resource);
         when(builder.createUriInfo()).thenReturn(uriInfo);
         when(uriInfo.getPathParameters()).thenReturn(parameters);
+        when(uriInfo.getQueryParameters()).thenReturn(parameters);
     }
 
     @Test
@@ -78,7 +80,7 @@ public class DefaultResourceMethodTest {
         parameters.put("path", List.of("path"));
         resourceMethod.call(context, builder);
 
-        verify(resource).getPathParam("path");
+        verify(resource).getPathParam(eq("path"));
     }
 
     @Test
@@ -88,7 +90,17 @@ public class DefaultResourceMethodTest {
 
         resourceMethod.call(context, builder);
 
-        verify(resource).getPathParam(1);
+        verify(resource).getPathParam(eq(1));
+    }
+
+    @Test
+    public void should_inject_string_to_query_param() {
+        DefaultResourceMethod resourceMethod = getResourceMethod("getQueryParam", String.class);
+        parameters.put("query", List.of("query"));
+
+        resourceMethod.call(context, builder);
+
+        verify(resource).getQueryParam(eq("query"));
     }
 
 
@@ -118,7 +130,7 @@ public class DefaultResourceMethodTest {
         String getPathParam(@PathParam("path") int value);
 
         @GET
-        String getCookieParam(@PathParam("path") int value);
+        String getQueryParam(@QueryParam("query") String value);
 
     }
 
