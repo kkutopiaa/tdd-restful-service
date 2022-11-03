@@ -213,7 +213,11 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
             Object[] parameters = Arrays.stream(method.getParameters()).map(parameter -> {
                 String name = parameter.getAnnotation(PathParam.class).value();
                 List<String> values = uriInfo.getPathParameters().get(name);
-                return values.get(0);
+                String value = values.get(0);
+                if (parameter.getType() == int.class) {
+                    return Integer.parseInt(value);
+                }
+                return value;
             }).toArray();
 
             Object result = method.invoke(builder.getLastMatchedResource(), parameters);
