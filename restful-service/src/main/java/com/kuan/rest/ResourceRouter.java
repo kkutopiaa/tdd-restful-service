@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -211,8 +212,16 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
             UriInfo uriInfo = builder.createUriInfo();
 
             Object[] parameters = Arrays.stream(method.getParameters()).map(parameter -> {
-                String name = parameter.getAnnotation(PathParam.class).value();
-                List<String> values = uriInfo.getPathParameters().get(name);
+
+                List<String> values;
+                if (parameter.isAnnotationPresent(PathParam.class)) {
+                    String name = parameter.getAnnotation(PathParam.class).value();
+                    values = uriInfo.getPathParameters().get(name);
+                } else {
+                    String name = parameter.getAnnotation(QueryParam.class).value();
+                    values = uriInfo.getQueryParameters().get(name);
+                }
+
                 String value = values.get(0);
                 if (parameter.getType() == int.class) {
                     return Integer.parseInt(value);
