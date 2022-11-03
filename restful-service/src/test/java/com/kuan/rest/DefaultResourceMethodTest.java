@@ -103,6 +103,16 @@ public class DefaultResourceMethodTest {
         verify(resource).getQueryParam(eq("query"));
     }
 
+    @Test
+    public void should_inject_int_to_query_param() {
+        DefaultResourceMethod resourceMethod = getResourceMethod("getQueryParam", int.class);
+        parameters.put("query", List.of("1"));
+
+        resourceMethod.call(context, builder);
+
+        verify(resource).getQueryParam(eq(1));
+    }
+
 
 
     private DefaultResourceMethod getResourceMethod(String methodName, Class... types) {
@@ -131,6 +141,9 @@ public class DefaultResourceMethodTest {
 
         @GET
         String getQueryParam(@QueryParam("query") String value);
+
+        @GET
+        String getQueryParam(@QueryParam("query") int value);
 
     }
 
