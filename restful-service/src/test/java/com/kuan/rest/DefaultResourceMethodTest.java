@@ -1,8 +1,11 @@
 package com.kuan.rest;
 
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.GenericEntity;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.UriInfo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,8 +14,7 @@ import org.mockito.Mockito;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @Author: qxkk
@@ -24,12 +26,21 @@ public class DefaultResourceMethodTest {
     private ResourceContext context;
     private UriInfoBuilder builder;
 
+    private UriInfo uriInfo;
+    private MultivaluedHashMap<String, String> parameters;
+
+
     @BeforeEach
     public void before() {
         resource = mock(CallableResourceMethods.class);
         context = mock(ResourceContext.class);
         builder = mock(UriInfoBuilder.class);
+        uriInfo = mock(UriInfo.class);
+        parameters = new MultivaluedHashMap<>();
+
         when(builder.getLastMatchedResource()).thenReturn(resource);
+        when(builder.createUriInfo()).thenReturn(uriInfo);
+        when(uriInfo.getPathParameters()).thenReturn(parameters);
     }
 
     @Test
@@ -53,10 +64,19 @@ public class DefaultResourceMethodTest {
                 resourceMethod.call(context, builder));
     }
 
+    @Test
+    public void should_inject_string_to_path_param() {
+        DefaultResourceMethod resourceMethod = getResourceMethod("getPathParam", String.class);
+        parameters.put("path", List.of("path"));
+        resourceMethod.call(context, builder);
 
-    private DefaultResourceMethod getResourceMethod(String methodName) {
+        verify(resource).getPathParam("path");
+    }
+
+
+    private DefaultResourceMethod getResourceMethod(String methodName, Class... types) {
         try {
-            return new DefaultResourceMethod(CallableResourceMethods.class.getMethod(methodName));
+            return new DefaultResourceMethod(CallableResourceMethods.class.getMethod(methodName, types));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -68,6 +88,16 @@ public class DefaultResourceMethodTest {
 
         @GET
         List<String> getList();
+
+        @GET
+        String getPathParam(@PathParam("path") String value);
+
+        @GET
+        String getPathParam(@PathParam("path") int value);
+
+        @GET
+        String getCookieParam(@PathParam("path") int value);
+
     }
 
 }
