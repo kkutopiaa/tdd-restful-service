@@ -81,7 +81,15 @@ public class DefaultResourceMethodTest {
         verify(resource).getPathParam("path");
     }
 
+    @Test
+    public void should_inject_int_to_path_param() {
+        DefaultResourceMethod resourceMethod = getResourceMethod("getPathParam", int.class);
+        parameters.put("path", List.of("1"));
 
+        resourceMethod.call(context, builder);
+
+        verify(resource).getPathParam(1);
+    }
 
 
 
