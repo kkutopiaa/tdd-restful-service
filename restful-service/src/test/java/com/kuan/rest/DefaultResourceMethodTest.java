@@ -1,6 +1,7 @@
 package com.kuan.rest;
 
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.GenericEntity;
@@ -14,6 +15,7 @@ import org.mockito.Mockito;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 /**
@@ -52,6 +54,12 @@ public class DefaultResourceMethodTest {
         assertEquals(new GenericEntity("resource called", String.class), resourceMethod.call(context, builder));
     }
 
+    @Test
+    public void should_call_resource_method_with_void_return_type() {
+        DefaultResourceMethod resourceMethod = getResourceMethod("post");
+
+        assertNull(resourceMethod.call(context, builder));
+    }
 
     @Test
     public void should_use_resource_method_generic_return_type() throws NoSuchMethodException {
@@ -74,6 +82,9 @@ public class DefaultResourceMethodTest {
     }
 
 
+
+
+
     private DefaultResourceMethod getResourceMethod(String methodName, Class... types) {
         try {
             return new DefaultResourceMethod(CallableResourceMethods.class.getMethod(methodName, types));
@@ -83,6 +94,9 @@ public class DefaultResourceMethodTest {
     }
 
     interface CallableResourceMethods {
+        @POST
+        String post();
+
         @GET
         String get();
 
