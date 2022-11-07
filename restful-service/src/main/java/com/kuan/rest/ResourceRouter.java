@@ -13,6 +13,7 @@ import jakarta.ws.rs.core.UriInfo;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.Function;
@@ -218,16 +219,11 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
             Object[] parameters = Arrays.stream(method.getParameters()).map(parameter -> {
 
-                List<String> values;
-                if (parameter.isAnnotationPresent(PathParam.class)) {
-                    String name = parameter.getAnnotation(PathParam.class).value();
-                    values = uriInfo.getPathParameters().get(name);
-                } else {
-                    String name = parameter.getAnnotation(QueryParam.class).value();
-                    values = uriInfo.getQueryParameters().get(name);
-                }
+                Optional<List<String>> values = pathParam.provide(parameter, uriInfo)
+                        .or(() -> queryParam.provide(parameter, uriInfo));
+                return values.map(v -> converters.get(parameter.getType()).fromString(v))
+                        .orElse(null);
 
-                return converters.get(parameter.getType()).fromString(values);
             }).toArray();
 
             Object result = method.invoke(builder.getLastMatchedResource(), parameters);
@@ -235,6 +231,20 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    ValueProvider pathParam = (parameter, uriInfo) ->
+            Optional.ofNullable(parameter.getAnnotation(PathParam.class))
+                    .map(annotation -> uriInfo.getPathParameters().get(annotation.value()));
+
+    ValueProvider queryParam = (parameter, uriInfo) ->
+            Optional.ofNullable(parameter.getAnnotation(QueryParam.class))
+                    .map(annotation -> uriInfo.getQueryParameters().get(annotation.value()));
+
+
+    interface ValueProvider {
+        Optional<List<String>> provide(Parameter parameter, UriInfo uriInfo);
     }
 
     interface ValueConverter<T> {
