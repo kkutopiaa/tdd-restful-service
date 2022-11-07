@@ -109,13 +109,7 @@ public class DefaultResourceMethodTest {
         String paramString = "path";
         String paramValue = "path";
 
-        DefaultResourceMethod resourceMethod = getResourceMethod(method, type);
-        parameters.put("param", List.of(paramString));
-
-        resourceMethod.call(context, builder);
-
-        assertEquals(getMethodName(method, List.of(type)), lastCall.name());
-        assertEquals(List.of(paramValue), lastCall.arguments());
+        verifyResourceMethodCalled(method, type, paramString, paramValue);
     }
 
     @Test
@@ -125,6 +119,10 @@ public class DefaultResourceMethodTest {
         String paramString = "1";
         int paramValue = 1;
 
+        verifyResourceMethodCalled(method, type, paramString, paramValue);
+    }
+
+    private void verifyResourceMethodCalled(String method, Class<?> type, String paramString, Object paramValue) {
         DefaultResourceMethod resourceMethod = getResourceMethod(method, type);
         parameters.put("param", List.of(paramString));
 
@@ -143,7 +141,6 @@ public class DefaultResourceMethodTest {
 
         assertEquals("getQueryParam(String)", lastCall.name());
         assertEquals(List.of("query"), lastCall.arguments());
-
     }
 
     @Test
