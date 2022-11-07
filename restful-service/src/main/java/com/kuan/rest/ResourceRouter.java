@@ -212,33 +212,27 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
     public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
         try {
             UriInfo uriInfo = builder.createUriInfo();
-            Map<Type, ValueConverter> converters = Map.of(
-                    int.class, ValueConverter.singleValue(Integer::parseInt),
-                    String.class, ValueConverter.singleValue(s -> s)
-            );
 
             Object[] parameters = Arrays.stream(method.getParameters()).map(parameter -> {
-
                 Optional<List<String>> values = pathParam.provide(parameter, uriInfo)
                         .or(() -> queryParam.provide(parameter, uriInfo));
                 return values.map(v -> converters.get(parameter.getType()).fromString(v))
                         .orElse(null);
-
             }).toArray();
 
             Object result = method.invoke(builder.getLastMatchedResource(), parameters);
-            return result != null ? new GenericEntity(result, method.getGenericReturnType()) : null;
+            return result != null ? new GenericEntity<>(result, method.getGenericReturnType()) : null;
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
     }
 
 
-    ValueProvider pathParam = (parameter, uriInfo) ->
+    private static final ValueProvider pathParam = (parameter, uriInfo) ->
             Optional.ofNullable(parameter.getAnnotation(PathParam.class))
                     .map(annotation -> uriInfo.getPathParameters().get(annotation.value()));
 
-    ValueProvider queryParam = (parameter, uriInfo) ->
+    private static final ValueProvider queryParam = (parameter, uriInfo) ->
             Optional.ofNullable(parameter.getAnnotation(QueryParam.class))
                     .map(annotation -> uriInfo.getQueryParameters().get(annotation.value()));
 
@@ -247,13 +241,18 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
         Optional<List<String>> provide(Parameter parameter, UriInfo uriInfo);
     }
 
+
+    private static final Map<Type, ValueConverter<?>> converters = Map.of(
+            int.class, ValueConverter.singleValue(Integer::parseInt),
+            String.class, ValueConverter.singleValue(s -> s)
+    );
+
     interface ValueConverter<T> {
         T fromString(List<String> values);
 
         static <T> ValueConverter<T> singleValue(Function<String, T> converter) {
             return values -> converter.apply(values.get(0));
         }
-
     }
 
 
