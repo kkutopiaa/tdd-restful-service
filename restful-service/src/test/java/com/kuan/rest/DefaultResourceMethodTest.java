@@ -114,7 +114,9 @@ public class DefaultResourceMethodTest {
 
         resourceMethod.call(context, builder);
 
-        verify(resource).getPathParam(eq(1));
+
+        assertEquals("getPathParam(int)", lastCall.name());
+        assertEquals(List.of(1), lastCall.arguments());
     }
 
     @Test
@@ -124,7 +126,9 @@ public class DefaultResourceMethodTest {
 
         resourceMethod.call(context, builder);
 
-        verify(resource).getQueryParam(eq("query"));
+        assertEquals("getQueryParam(String)", lastCall.name());
+        assertEquals(List.of("query"), lastCall.arguments());
+
     }
 
     @Test
@@ -134,7 +138,8 @@ public class DefaultResourceMethodTest {
 
         resourceMethod.call(context, builder);
 
-        verify(resource).getQueryParam(eq(1));
+        assertEquals("getQueryParam(int)", lastCall.name());
+        assertEquals(List.of(1), lastCall.arguments());
     }
 
 
