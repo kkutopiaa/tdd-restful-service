@@ -214,7 +214,7 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
             UriInfo uriInfo = builder.createUriInfo();
 
             Object[] parameters = Arrays.stream(method.getParameters()).map(parameter ->
-                    List.of(pathParam, queryParam).stream()
+                    providers.stream()
                             .map(provider -> provider.provide(parameter, uriInfo))
                             .filter(Optional::isPresent)
                             .findFirst()
@@ -238,6 +238,7 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
             Optional.ofNullable(parameter.getAnnotation(QueryParam.class))
                     .map(annotation -> uriInfo.getQueryParameters().get(annotation.value()));
 
+    private static final List<ValueProvider> providers = List.of(pathParam, queryParam);
 
     interface ValueProvider {
         Optional<List<String>> provide(Parameter parameter, UriInfo uriInfo);
