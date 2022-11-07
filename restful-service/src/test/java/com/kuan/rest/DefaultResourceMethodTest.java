@@ -15,11 +15,13 @@ import org.mockito.Mockito;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -51,11 +53,8 @@ public class DefaultResourceMethodTest {
         resource = (CallableResourceMethods) Proxy.newProxyInstance(this.getClass().getClassLoader(),
                 new Class[]{CallableResourceMethods.class},
                 (proxy, method, args) -> {
-                    String name = method.getName() + "("
-                            + Arrays.stream(method.getParameters())
-                                    .map(p -> p.getType().getSimpleName())
-                                    .collect(Collectors.joining("."))
-                            + ")";
+                    String name = getMethodName(method.getName(),
+                            Arrays.stream(method.getParameters()).map(Parameter::getType).toList());
                     lastCall = new LastCall(name, args != null ? List.of(args) : List.of());
                     return "getList".equals(method.getName()) ? new ArrayList<String>() : null;
                 });
@@ -69,6 +68,14 @@ public class DefaultResourceMethodTest {
         when(builder.createUriInfo()).thenReturn(uriInfo);
         when(uriInfo.getPathParameters()).thenReturn(parameters);
         when(uriInfo.getQueryParameters()).thenReturn(parameters);
+    }
+
+    private static String getMethodName(String methodName, List<? extends Class<?>> classStream) {
+        return methodName + "("
+                + classStream.stream()
+                .map(Class::getSimpleName)
+                .collect(Collectors.joining("."))
+                + ")";
     }
 
     @Test
@@ -97,19 +104,23 @@ public class DefaultResourceMethodTest {
 
     @Test
     public void should_inject_string_to_path_param() {
-        DefaultResourceMethod resourceMethod = getResourceMethod("getPathParam", String.class);
-        parameters.put("path", List.of("path"));
+        String method = "getPathParam";
+        Class<String> type = String.class;
+        List<String> paramValue = List.of("path");
+
+        DefaultResourceMethod resourceMethod = getResourceMethod(method, type);
+        parameters.put("param", paramValue);
 
         resourceMethod.call(context, builder);
 
-        assertEquals("getPathParam(String)", lastCall.name());
-        assertEquals(List.of("path"), lastCall.arguments());
+        assertEquals(getMethodName(method, List.of(type)), lastCall.name());
+        assertEquals(paramValue, lastCall.arguments());
     }
 
     @Test
     public void should_inject_int_to_path_param() {
         DefaultResourceMethod resourceMethod = getResourceMethod("getPathParam", int.class);
-        parameters.put("path", List.of("1"));
+        parameters.put("param", List.of("1"));
 
         resourceMethod.call(context, builder);
 
@@ -121,7 +132,7 @@ public class DefaultResourceMethodTest {
     @Test
     public void should_inject_string_to_query_param() {
         DefaultResourceMethod resourceMethod = getResourceMethod("getQueryParam", String.class);
-        parameters.put("query", List.of("query"));
+        parameters.put("param", List.of("query"));
 
         resourceMethod.call(context, builder);
 
@@ -133,7 +144,7 @@ public class DefaultResourceMethodTest {
     @Test
     public void should_inject_int_to_query_param() {
         DefaultResourceMethod resourceMethod = getResourceMethod("getQueryParam", int.class);
-        parameters.put("query", List.of("1"));
+        parameters.put("param", List.of("1"));
 
         resourceMethod.call(context, builder);
 
@@ -161,16 +172,16 @@ public class DefaultResourceMethodTest {
         List<String> getList();
 
         @GET
-        String getPathParam(@PathParam("path") String value);
+        String getPathParam(@PathParam("param") String value);
 
         @GET
-        String getPathParam(@PathParam("path") int value);
+        String getPathParam(@PathParam("param") int value);
 
         @GET
-        String getQueryParam(@QueryParam("query") String value);
+        String getQueryParam(@QueryParam("param") String value);
 
         @GET
-        String getQueryParam(@QueryParam("query") int value);
+        String getQueryParam(@QueryParam("param") int value);
 
     }
 
