@@ -106,27 +106,32 @@ public class DefaultResourceMethodTest {
     public void should_inject_string_to_path_param() {
         String method = "getPathParam";
         Class<String> type = String.class;
-        List<String> paramValue = List.of("path");
+        String paramString = "path";
+        String paramValue = "path";
 
         DefaultResourceMethod resourceMethod = getResourceMethod(method, type);
-        parameters.put("param", paramValue);
+        parameters.put("param", List.of(paramString));
 
         resourceMethod.call(context, builder);
 
         assertEquals(getMethodName(method, List.of(type)), lastCall.name());
-        assertEquals(paramValue, lastCall.arguments());
+        assertEquals(List.of(paramValue), lastCall.arguments());
     }
 
     @Test
     public void should_inject_int_to_path_param() {
-        DefaultResourceMethod resourceMethod = getResourceMethod("getPathParam", int.class);
-        parameters.put("param", List.of("1"));
+        String method = "getPathParam";
+        Class<Integer> type = int.class;
+        String paramString = "1";
+        int paramValue = 1;
+
+        DefaultResourceMethod resourceMethod = getResourceMethod(method, type);
+        parameters.put("param", List.of(paramString));
 
         resourceMethod.call(context, builder);
 
-
-        assertEquals("getPathParam(int)", lastCall.name());
-        assertEquals(List.of(1), lastCall.arguments());
+        assertEquals(getMethodName(method, List.of(type)), lastCall.name());
+        assertEquals(List.of(paramValue), lastCall.arguments());
     }
 
     @Test
