@@ -16,6 +16,7 @@ import org.mockito.Mockito;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,7 +57,7 @@ public class DefaultResourceMethodTest {
                                     .collect(Collectors.joining("."))
                             + ")";
                     lastCall = new LastCall(name, args != null ? List.of(args) : List.of());
-                    return null;
+                    return "getList".equals(method.getName()) ? new ArrayList<String>() : null;
                 });
 
         context = mock(ResourceContext.class);
@@ -87,8 +88,6 @@ public class DefaultResourceMethodTest {
 
     @Test
     public void should_use_resource_method_generic_return_type() throws NoSuchMethodException {
-        when(resource.getList()).thenReturn(List.of());
-
         DefaultResourceMethod resourceMethod = getResourceMethod("getList");
 
         assertEquals(
