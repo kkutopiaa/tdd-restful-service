@@ -13,6 +13,7 @@ import jakarta.ws.rs.core.UriInfo;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -210,6 +211,10 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
     public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
         try {
             UriInfo uriInfo = builder.createUriInfo();
+            Map<Type, ValueConverter> converters = Map.of(
+                    int.class, Integer::parseInt,
+                    String.class, s -> s
+            );
 
             Object[] parameters = Arrays.stream(method.getParameters()).map(parameter -> {
 
@@ -223,10 +228,7 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
                 }
 
                 String value = values.get(0);
-                if (parameter.getType() == int.class) {
-                    return Integer.parseInt(value);
-                }
-                return value;
+                return converters.get(parameter.getType()).fromString(value);
             }).toArray();
 
             Object result = method.invoke(builder.getLastMatchedResource(), parameters);
@@ -235,6 +237,11 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
             throw new RuntimeException(e);
         }
     }
+
+    interface ValueConverter<T> {
+        T fromString(String value);
+    }
+
 
     @Override
     public String toString() {
