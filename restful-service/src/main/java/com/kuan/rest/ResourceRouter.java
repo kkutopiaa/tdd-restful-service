@@ -212,8 +212,8 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
         try {
             UriInfo uriInfo = builder.createUriInfo();
             Map<Type, ValueConverter> converters = Map.of(
-                    int.class, Integer::parseInt,
-                    String.class, s -> s
+                    int.class, ValueConverter.singleValue(Integer::parseInt),
+                    String.class, ValueConverter.singleValue(s -> s)
             );
 
             Object[] parameters = Arrays.stream(method.getParameters()).map(parameter -> {
@@ -227,8 +227,7 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
                     values = uriInfo.getQueryParameters().get(name);
                 }
 
-                String value = values.get(0);
-                return converters.get(parameter.getType()).fromString(value);
+                return converters.get(parameter.getType()).fromString(values);
             }).toArray();
 
             Object result = method.invoke(builder.getLastMatchedResource(), parameters);
@@ -239,7 +238,12 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
     }
 
     interface ValueConverter<T> {
-        T fromString(String value);
+        T fromString(List<String> values);
+
+        static <T> ValueConverter<T> singleValue(Function<String, T> converter) {
+            return values -> converter.apply(values.get(0));
+        }
+
     }
 
 
