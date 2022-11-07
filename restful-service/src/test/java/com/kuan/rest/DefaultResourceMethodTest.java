@@ -13,7 +13,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -33,9 +38,27 @@ public class DefaultResourceMethodTest {
     private MultivaluedHashMap<String, String> parameters;
 
 
+    private LastCall lastCall;
+
+    record LastCall(String name, List<Object> arguments) {
+
+    }
+
     @BeforeEach
     public void before() {
-        resource = mock(CallableResourceMethods.class);
+        lastCall = null;
+        resource = (CallableResourceMethods) Proxy.newProxyInstance(this.getClass().getClassLoader(),
+                new Class[]{CallableResourceMethods.class},
+                (proxy, method, args) -> {
+                    String name = method.getName() + "("
+                            + Arrays.stream(method.getParameters())
+                                    .map(p -> p.getType().getSimpleName())
+                                    .collect(Collectors.joining("."))
+                            + ")";
+                    lastCall = new LastCall(name, args != null ? List.of(args) : List.of());
+                    return null;
+                });
+
         context = mock(ResourceContext.class);
         builder = mock(UriInfoBuilder.class);
         uriInfo = mock(UriInfo.class);
@@ -49,11 +72,10 @@ public class DefaultResourceMethodTest {
 
     @Test
     public void should_call_resource_method() {
-        when(resource.get()).thenReturn("resource called");
-
         DefaultResourceMethod resourceMethod = getResourceMethod("get");
+        resourceMethod.call(context, builder);
 
-        assertEquals(new GenericEntity("resource called", String.class), resourceMethod.call(context, builder));
+        assertEquals("get()", lastCall.name);
     }
 
     @Test
@@ -112,7 +134,6 @@ public class DefaultResourceMethodTest {
 
         verify(resource).getQueryParam(eq(1));
     }
-
 
 
     private DefaultResourceMethod getResourceMethod(String methodName, Class... types) {
