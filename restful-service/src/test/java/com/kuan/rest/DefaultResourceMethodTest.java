@@ -134,24 +134,22 @@ public class DefaultResourceMethodTest {
 
     @Test
     public void should_inject_string_to_query_param() {
-        DefaultResourceMethod resourceMethod = getResourceMethod("getQueryParam", String.class);
-        parameters.put("param", List.of("query"));
+        String method = "getQueryParam";
+        Class<String> type = String.class;
+        String paramString = "query";
+        String paramValue = "query";
 
-        resourceMethod.call(context, builder);
-
-        assertEquals("getQueryParam(String)", lastCall.name());
-        assertEquals(List.of("query"), lastCall.arguments());
+        verifyResourceMethodCalled(method, type, paramString, paramValue);
     }
 
     @Test
     public void should_inject_int_to_query_param() {
-        DefaultResourceMethod resourceMethod = getResourceMethod("getQueryParam", int.class);
-        parameters.put("param", List.of("1"));
+        String method = "getQueryParam";
+        Class<Integer> type = int.class;
+        String paramString = "1";
+        int paramValue = 1;
 
-        resourceMethod.call(context, builder);
-
-        assertEquals("getQueryParam(int)", lastCall.name());
-        assertEquals(List.of(1), lastCall.arguments());
+        verifyResourceMethodCalled(method, type, paramString, paramValue);
     }
 
 
