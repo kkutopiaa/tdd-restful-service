@@ -213,12 +213,14 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
         try {
             UriInfo uriInfo = builder.createUriInfo();
 
-            Object[] parameters = Arrays.stream(method.getParameters()).map(parameter -> {
-                Optional<List<String>> values = pathParam.provide(parameter, uriInfo)
-                        .or(() -> queryParam.provide(parameter, uriInfo));
-                return values.map(v -> converters.get(parameter.getType()).fromString(v))
-                        .orElse(null);
-            }).toArray();
+            Object[] parameters = Arrays.stream(method.getParameters()).map(parameter ->
+                    List.of(pathParam, queryParam).stream()
+                            .map(provider -> provider.provide(parameter, uriInfo))
+                            .filter(Optional::isPresent)
+                            .findFirst()
+                            .flatMap(values -> values.map(v -> converters.get(parameter.getType()).fromString(v)))
+                            .orElse(null)
+            ).toArray();
 
             Object result = method.invoke(builder.getLastMatchedResource(), parameters);
             return result != null ? new GenericEntity<>(result, method.getGenericReturnType()) : null;
