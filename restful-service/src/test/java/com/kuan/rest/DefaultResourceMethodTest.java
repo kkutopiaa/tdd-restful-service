@@ -100,9 +100,11 @@ public class DefaultResourceMethodTest {
     public void should_inject_string_to_path_param() {
         DefaultResourceMethod resourceMethod = getResourceMethod("getPathParam", String.class);
         parameters.put("path", List.of("path"));
+
         resourceMethod.call(context, builder);
 
-        verify(resource).getPathParam(eq("path"));
+        assertEquals("getPathParam(String)", lastCall.name());
+        assertEquals(List.of("path"), lastCall.arguments());
     }
 
     @Test
