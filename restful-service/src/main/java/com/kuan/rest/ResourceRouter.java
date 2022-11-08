@@ -247,6 +247,7 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
     private static final Map<Type, ValueConverter<?>> converters = Map.of(
             int.class, ValueConverter.singleValue(Integer::parseInt),
+            double.class, ValueConverter.singleValue(Double::parseDouble),
             String.class, ValueConverter.singleValue(s -> s)
     );
 

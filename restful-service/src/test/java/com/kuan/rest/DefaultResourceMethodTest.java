@@ -164,6 +164,9 @@ public class DefaultResourceMethodTest {
         String getPathParam(@PathParam("param") int value);
 
         @GET
+        String getPathParam(@PathParam("param") double value);
+
+        @GET
         String getQueryParam(@QueryParam("param") String value);
 
         @GET
