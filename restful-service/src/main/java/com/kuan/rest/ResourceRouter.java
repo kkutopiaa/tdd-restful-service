@@ -15,7 +15,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -231,13 +230,8 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
     }
 
     private static Optional<Object> convert(Parameter parameter, List<String> values) {
-        return primitiveConverter(parameter, values)
+        return PrimitiveConverter.convert(parameter, values)
                 .or(() -> ConstructorConverter.convert(parameter.getType(), values.get(0)));
-    }
-
-    private static Optional<Object> primitiveConverter(Parameter parameter, List<String> values) {
-        return Optional.ofNullable(primitiveConverters.get(parameter.getType()))
-                .map(c -> c.fromString(values));
     }
 
 
@@ -256,17 +250,6 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
     }
 
 
-    private static final Map<Type, ValueConverter<Object>> primitiveConverters = Map.of(
-            double.class, ValueConverter.singleValue(Double::parseDouble),
-            float.class, ValueConverter.singleValue(Float::parseFloat),
-            long.class, ValueConverter.singleValue(Long::parseLong),
-            int.class, ValueConverter.singleValue(Integer::parseInt),
-            short.class, ValueConverter.singleValue(Short::parseShort),
-            byte.class, ValueConverter.singleValue(Byte::parseByte),
-            boolean.class, ValueConverter.singleValue(Boolean::parseBoolean),
-            String.class, ValueConverter.singleValue(s -> s)
-    );
-
     interface ValueConverter<T> {
         T fromString(List<String> values);
 
@@ -284,6 +267,21 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
 class PrimitiveConverter {
 
+    private static final Map<Type, DefaultResourceMethod.ValueConverter<Object>> converters = Map.of(
+            double.class, DefaultResourceMethod.ValueConverter.singleValue(Double::parseDouble),
+            float.class, DefaultResourceMethod.ValueConverter.singleValue(Float::parseFloat),
+            long.class, DefaultResourceMethod.ValueConverter.singleValue(Long::parseLong),
+            int.class, DefaultResourceMethod.ValueConverter.singleValue(Integer::parseInt),
+            short.class, DefaultResourceMethod.ValueConverter.singleValue(Short::parseShort),
+            byte.class, DefaultResourceMethod.ValueConverter.singleValue(Byte::parseByte),
+            boolean.class, DefaultResourceMethod.ValueConverter.singleValue(Boolean::parseBoolean),
+            String.class, DefaultResourceMethod.ValueConverter.singleValue(s -> s)
+    );
+
+    static Optional<Object> convert(Parameter parameter, List<String> values) {
+        return Optional.ofNullable(converters.get(parameter.getType()))
+                .map(c -> c.fromString(values));
+    }
 }
 
 class ConstructorConverter {
