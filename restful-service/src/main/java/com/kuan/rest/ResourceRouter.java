@@ -279,6 +279,9 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
 class ConstructorConverter {
 
+    public static boolean hasConverter(Class<?> clazz) {
+        return false;
+    }
 }
 
 class SubResourceLocators {
