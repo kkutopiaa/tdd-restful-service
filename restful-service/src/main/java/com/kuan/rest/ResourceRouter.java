@@ -280,7 +280,12 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 class ConstructorConverter {
 
     public static boolean hasConverter(Class<?> clazz) {
-        return false;
+        try {
+            clazz.getConstructor(String.class);
+            return true;
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
     }
 }
 
