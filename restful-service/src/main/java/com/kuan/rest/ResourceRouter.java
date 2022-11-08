@@ -213,20 +213,29 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
         try {
             UriInfo uriInfo = builder.createUriInfo();
 
-            Object[] parameters = Arrays.stream(method.getParameters()).map(parameter ->
-                    providers.stream()
-                            .map(provider -> provider.provide(parameter, uriInfo))
-                            .filter(Optional::isPresent)
-                            .findFirst()
-                            .flatMap(values -> values.flatMap(v -> convert(parameter, v)))
+            Object[] parameters = Arrays.stream(method.getParameters())
+                    .map(parameter -> injectParameter(parameter, uriInfo)
+                            .or(() -> injectContext(parameter, resourceContext, uriInfo))
                             .orElse(null)
-            ).toArray();
+                    ).toArray();
 
             Object result = method.invoke(builder.getLastMatchedResource(), parameters);
             return result != null ? new GenericEntity<>(result, method.getGenericReturnType()) : null;
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static Optional<Object> injectParameter(Parameter parameter, UriInfo uriInfo) {
+        return providers.stream()
+                .map(provider -> provider.provide(parameter, uriInfo))
+                .filter(Optional::isPresent)
+                .findFirst()
+                .flatMap(values -> values.flatMap(v -> convert(parameter, v)));
+    }
+
+    private static Optional<Object> injectContext(Parameter parameter, ResourceContext resourceContext, UriInfo uriInfo) {
+        return Optional.of(resourceContext.getResource(parameter.getType()));
     }
 
     private static Optional<Object> convert(Parameter parameter, List<String> values) {
