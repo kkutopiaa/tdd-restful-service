@@ -289,7 +289,12 @@ class ConstructorConverter {
     }
 
     public static Object convert(Class<?> convert, String value) {
-        return null;
+        try {
+            return convert.getConstructor(String.class).newInstance(value);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                 NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
 
