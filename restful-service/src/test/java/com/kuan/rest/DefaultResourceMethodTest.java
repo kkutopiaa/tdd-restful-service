@@ -149,7 +149,8 @@ public class DefaultResourceMethodTest {
         List<DynamicTest> tests = new ArrayList<>();
         List<InjectableTypeTestCase> typeCases = List.of(
                 new InjectableTypeTestCase(SameServiceInContext.class, "N/A", service),
-                new InjectableTypeTestCase(ResourceContext.class, "N/A", context)
+                new InjectableTypeTestCase(ResourceContext.class, "N/A", context),
+                new InjectableTypeTestCase(UriInfo.class, "N/A", uriInfo)
         );
 
         for (InjectableTypeTestCase typeCase : typeCases) {
@@ -256,6 +257,9 @@ public class DefaultResourceMethodTest {
 
         @GET
         String getContext(@Context ResourceContext service);
+
+        @GET
+        String getContext(@Context UriInfo service);
 
     }
 
