@@ -279,22 +279,12 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 }
 
 class ConstructorConverter {
-
-    public static boolean hasConverter(Class<?> convert) {
-        try {
-            convert.getConstructor(String.class);
-            return true;
-        } catch (NoSuchMethodException e) {
-            return false;
-        }
-    }
-
     public static Optional<Object> convert(Class<?> convert, String value) {
         try {
             return Optional.of(convert.getConstructor(String.class).newInstance(value));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                  NoSuchMethodException e) {
-            throw new RuntimeException(e);
+            return Optional.empty();
         }
     }
 }
