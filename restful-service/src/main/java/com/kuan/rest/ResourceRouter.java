@@ -238,6 +238,9 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
         if (parameter.getType().equals(ResourceContext.class)) {
             return Optional.of(resourceContext);
         }
+        if (parameter.getType().equals(UriInfo.class)) {
+            return Optional.of(uriInfo);
+        }
         return Optional.of(resourceContext.getResource(parameter.getType()));
     }
 
