@@ -231,9 +231,13 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
     }
 
     private static Optional<Object> convert(Parameter parameter, List<String> values) {
-        return Optional.ofNullable(primitiveConverters.get(parameter.getType()))
-                .map(c -> c.fromString(values))
+        return primitiveConverter(parameter, values)
                 .or(() -> ConstructorConverter.convert(parameter.getType(), values.get(0)));
+    }
+
+    private static Optional<Object> primitiveConverter(Parameter parameter, List<String> values) {
+        return Optional.ofNullable(primitiveConverters.get(parameter.getType()))
+                .map(c -> c.fromString(values));
     }
 
 
@@ -276,6 +280,10 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
     public String toString() {
         return method.getDeclaringClass().getSimpleName() + "." + method.getName();
     }
+}
+
+class PrimitiveConverter {
+
 }
 
 class ConstructorConverter {
