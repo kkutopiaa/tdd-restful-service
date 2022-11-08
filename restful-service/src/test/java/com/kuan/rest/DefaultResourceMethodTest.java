@@ -5,6 +5,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.UriInfo;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,10 +44,12 @@ public class DefaultResourceMethodTest {
 
 
     private LastCall lastCall;
-
     record LastCall(String name, List<Object> arguments) {
 
     }
+
+    private SameServiceInContext service;
+
 
     @BeforeEach
     public void before() {
@@ -62,12 +66,14 @@ public class DefaultResourceMethodTest {
         context = mock(ResourceContext.class);
         builder = mock(UriInfoBuilder.class);
         uriInfo = mock(UriInfo.class);
+        service = mock(SameServiceInContext.class);
         parameters = new MultivaluedHashMap<>();
 
         when(builder.getLastMatchedResource()).thenReturn(resource);
         when(builder.createUriInfo()).thenReturn(uriInfo);
         when(uriInfo.getPathParameters()).thenReturn(parameters);
         when(uriInfo.getQueryParameters()).thenReturn(parameters);
+        when(context.getResource(eq(SameServiceInContext.class))).thenReturn(service);
     }
 
     private static String getMethodName(String methodName, List<? extends Class<?>> classStream) {
@@ -108,7 +114,7 @@ public class DefaultResourceMethodTest {
     }
 
     @TestFactory
-    public List<DynamicTest> injectableTypes() {
+    public List<DynamicTest> inject_convertible_types() {
         List<DynamicTest> tests = new ArrayList<>();
 
         List<String> paramTypes = List.of("getPathParam", "getQueryParam");
@@ -132,6 +138,23 @@ public class DefaultResourceMethodTest {
                         () -> verifyResourceMethodCalled(type, testCase.type(), testCase.string(), testCase.value());
                 tests.add(DynamicTest.dynamicTest(displayName, executable));
             }
+        }
+
+        return tests;
+    }
+
+    @TestFactory
+    public List<DynamicTest> inject_context_object() {
+        List<DynamicTest> tests = new ArrayList<>();
+        List<InjectableTypeTestCase> typeCases = List.of(
+                new InjectableTypeTestCase(SameServiceInContext.class, "N/A", service)
+        );
+
+        for (InjectableTypeTestCase typeCase : typeCases) {
+            String displayName = "should inject " + typeCase.type().getSimpleName() + " to getContext";
+            Executable executable =
+                    () -> verifyResourceMethodCalled("getContext", typeCase.type(), typeCase.string(), typeCase.value());
+            tests.add(DynamicTest.dynamicTest(displayName, executable));
         }
 
         return tests;
@@ -226,10 +249,17 @@ public class DefaultResourceMethodTest {
         @GET
         String getQueryParam(@QueryParam("param") Converter value);
 
+        @GET
+        String getContext(@Context SameServiceInContext service);
+
     }
 
 }
 
 enum Converter {
     Primitive, Constructor, Factory;
+}
+
+interface SameServiceInContext {
+
 }
