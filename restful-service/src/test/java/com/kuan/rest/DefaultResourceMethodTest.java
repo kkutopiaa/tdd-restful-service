@@ -113,8 +113,13 @@ public class DefaultResourceMethodTest {
         List<String> paramTypes = List.of("getPathParam", "getQueryParam");
         List<InjectableTypeTestCase> typeCases = List.of(
                 new InjectableTypeTestCase(String.class, "string", "string"),
+                new InjectableTypeTestCase(double.class, "3.14", 3.14),
+                new InjectableTypeTestCase(float.class, "1.1", (float) 1.1),
+                new InjectableTypeTestCase(long.class, "2", (long) 2),
                 new InjectableTypeTestCase(int.class, "1", 1),
-                new InjectableTypeTestCase(double.class, "1.1", 1.1)
+                new InjectableTypeTestCase(short.class, "128", (short) 128),
+                new InjectableTypeTestCase(byte.class, "127", (byte) 127),
+                new InjectableTypeTestCase(boolean.class, "TRUE", true)
         );
 
         for (String type : paramTypes) {
@@ -165,6 +170,16 @@ public class DefaultResourceMethodTest {
 
         @GET
         String getPathParam(@PathParam("param") double value);
+        @GET
+        String getPathParam(@PathParam("param") float value);
+        @GET
+        String getPathParam(@PathParam("param") long value);
+        @GET
+        String getPathParam(@PathParam("param") short value);
+        @GET
+        String getPathParam(@PathParam("param") byte value);
+        @GET
+        String getPathParam(@PathParam("param") boolean value);
 
         @GET
         String getQueryParam(@QueryParam("param") String value);
@@ -174,6 +189,16 @@ public class DefaultResourceMethodTest {
 
         @GET
         String getQueryParam(@QueryParam("param") double value);
+        @GET
+        String getQueryParam(@QueryParam("param") float value);
+        @GET
+        String getQueryParam(@QueryParam("param") short value);
+        @GET
+        String getQueryParam(@QueryParam("param") long value);
+        @GET
+        String getQueryParam(@QueryParam("param") byte value);
+        @GET
+        String getQueryParam(@QueryParam("param") boolean value);
 
     }
 
