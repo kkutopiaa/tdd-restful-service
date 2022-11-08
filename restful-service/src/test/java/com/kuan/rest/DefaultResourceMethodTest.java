@@ -16,6 +16,7 @@ import org.junit.jupiter.api.function.Executable;
 
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Proxy;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -119,7 +120,8 @@ public class DefaultResourceMethodTest {
                 new InjectableTypeTestCase(int.class, "1", 1),
                 new InjectableTypeTestCase(short.class, "128", (short) 128),
                 new InjectableTypeTestCase(byte.class, "127", (byte) 127),
-                new InjectableTypeTestCase(boolean.class, "TRUE", true)
+                new InjectableTypeTestCase(boolean.class, "TRUE", true),
+                new InjectableTypeTestCase(BigDecimal.class, "12345", new BigDecimal("12345"))
         );
 
         for (String type : paramTypes) {
@@ -180,6 +182,9 @@ public class DefaultResourceMethodTest {
         String getPathParam(@PathParam("param") byte value);
         @GET
         String getPathParam(@PathParam("param") boolean value);
+        @GET
+        String getPathParam(@PathParam("param") BigDecimal value);
+
 
         @GET
         String getQueryParam(@QueryParam("param") String value);
@@ -199,6 +204,9 @@ public class DefaultResourceMethodTest {
         String getQueryParam(@QueryParam("param") byte value);
         @GET
         String getQueryParam(@QueryParam("param") boolean value);
+
+        @GET
+        String getQueryParam(@QueryParam("param") BigDecimal value);
 
     }
 
