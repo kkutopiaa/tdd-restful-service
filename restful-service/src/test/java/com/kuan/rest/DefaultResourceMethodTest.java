@@ -8,24 +8,23 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.UriInfo;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.function.Executable;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @Author: qxkk
@@ -150,6 +149,33 @@ public class DefaultResourceMethodTest {
         int paramValue = 1;
 
         verifyResourceMethodCalled(method, type, paramString, paramValue);
+    }
+
+
+    record InjectableTypeTestCase(Class<?> type, String string, Object value) {
+
+    }
+
+    @TestFactory
+    public List<DynamicTest> injectableTypes() {
+        List<DynamicTest> tests = new ArrayList<>();
+
+        List<String> paramTypes = List.of("getPathParam", "getQueryParam");
+        List<InjectableTypeTestCase> typeCases = List.of(
+                new InjectableTypeTestCase(String.class, "string", "string"),
+                new InjectableTypeTestCase(int.class, "1", 1)
+        );
+
+        for (String type : paramTypes) {
+            for (InjectableTypeTestCase testCase : typeCases) {
+                String displayName = "should inject " + testCase.type().getSimpleName() + " to " + type;
+                Executable executable =
+                        () -> verifyResourceMethodCalled(type, testCase.type(), testCase.string(), testCase.value());
+                tests.add(DynamicTest.dynamicTest(displayName, executable));
+            }
+        }
+
+        return tests;
     }
 
 
