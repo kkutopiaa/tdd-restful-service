@@ -285,14 +285,26 @@ class PrimitiveConverter {
 }
 
 class ConstructorConverter {
-    public static Optional<Object> convert(Class<?> convert, String value) {
+    public static Optional<Object> convert(Class<?> converter, String value) {
         try {
-            return Optional.of(convert.getConstructor(String.class).newInstance(value));
+            return Optional.of(converter.getConstructor(String.class).newInstance(value));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                  NoSuchMethodException e) {
             return Optional.empty();
         }
     }
+}
+
+class FactoryConverter {
+
+    public static Optional<Object> convert(Class<?> converter, String value) {
+        try {
+            return Optional.of(converter.getMethod("valueOf", String.class).invoke(null, value));
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            return Optional.empty();
+        }
+    }
+
 }
 
 class SubResourceLocators {
