@@ -113,7 +113,8 @@ public class DefaultResourceMethodTest {
         List<String> paramTypes = List.of("getPathParam", "getQueryParam");
         List<InjectableTypeTestCase> typeCases = List.of(
                 new InjectableTypeTestCase(String.class, "string", "string"),
-                new InjectableTypeTestCase(int.class, "1", 1)
+                new InjectableTypeTestCase(int.class, "1", 1),
+                new InjectableTypeTestCase(double.class, "1.1", 1.1)
         );
 
         for (String type : paramTypes) {
@@ -167,6 +168,9 @@ public class DefaultResourceMethodTest {
 
         @GET
         String getQueryParam(@QueryParam("param") int value);
+
+        @GET
+        String getQueryParam(@QueryParam("param") double value);
 
     }
 
