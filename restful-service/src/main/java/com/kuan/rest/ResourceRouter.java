@@ -231,7 +231,9 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
     private static Optional<Object> convert(Parameter parameter, List<String> values) {
         return PrimitiveConverter.convert(parameter, values)
-                .or(() -> ConstructorConverter.convert(parameter.getType(), values.get(0)));
+                .or(() -> ConstructorConverter.convert(parameter.getType(), values.get(0)))
+                .or(() -> FactoryConverter.convert(parameter.getType(), values.get(0)));
+
     }
 
 
