@@ -220,7 +220,7 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
                             .filter(Optional::isPresent)
                             .findFirst()
                             .flatMap(values -> values.flatMap(v -> convert(parameter, v)))
-                            .orElse(new BigDecimal("12345"))
+                            .orElse(null)
             ).toArray();
 
             Object result = method.invoke(builder.getLastMatchedResource(), parameters);
@@ -232,7 +232,8 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
     private static Optional<Object> convert(Parameter parameter, List<String> values) {
         return Optional.ofNullable(primitiveConverters.get(parameter.getType()))
-                .map(c -> c.fromString(values));
+                .map(c -> c.fromString(values))
+                .or(() -> ConstructorConverter.convert(parameter.getType(), values.get(0)));
     }
 
 
@@ -251,7 +252,7 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
     }
 
 
-    private static final Map<Type, ValueConverter<?>> primitiveConverters = Map.of(
+    private static final Map<Type, ValueConverter<Object>> primitiveConverters = Map.of(
             double.class, ValueConverter.singleValue(Double::parseDouble),
             float.class, ValueConverter.singleValue(Float::parseFloat),
             long.class, ValueConverter.singleValue(Long::parseLong),
@@ -288,9 +289,9 @@ class ConstructorConverter {
         }
     }
 
-    public static Object convert(Class<?> convert, String value) {
+    public static Optional<Object> convert(Class<?> convert, String value) {
         try {
-            return convert.getConstructor(String.class).newInstance(value);
+            return Optional.of(convert.getConstructor(String.class).newInstance(value));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                  NoSuchMethodException e) {
             throw new RuntimeException(e);
