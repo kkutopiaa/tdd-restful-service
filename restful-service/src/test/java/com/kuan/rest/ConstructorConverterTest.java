@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @Author: qxkk
@@ -21,6 +20,11 @@ public class ConstructorConverterTest {
     @Test
     public void should_identity_as_constructor_converter() {
         assertTrue(ConstructorConverter.hasConverter(BigDecimal.class));
+    }
+
+    @Test
+    public void should_convert_via_converter_constructor() {
+        assertEquals(new BigDecimal("12345"), ConstructorConverter.convert(BigDecimal.class, "12345"));
     }
 
 }
