@@ -235,6 +235,9 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
     }
 
     private static Optional<Object> injectContext(Parameter parameter, ResourceContext resourceContext, UriInfo uriInfo) {
+        if (parameter.getType().equals(ResourceContext.class)) {
+            return Optional.of(resourceContext);
+        }
         return Optional.of(resourceContext.getResource(parameter.getType()));
     }
 
