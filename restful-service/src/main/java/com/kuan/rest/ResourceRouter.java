@@ -210,12 +210,71 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
     @Override
     public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
-        Object result = invoke(method, resourceContext, builder);
+        Object result = MethodInvoker.invoke(method, resourceContext, builder);
 
         return result != null ? new GenericEntity<>(result, method.getGenericReturnType()) : null;
     }
 
-    private static Object invoke(Method method, ResourceContext resourceContext, UriInfoBuilder builder) {
+
+    @Override
+    public String toString() {
+        return method.getDeclaringClass().getSimpleName() + "." + method.getName();
+    }
+}
+
+class PrimitiveConverter {
+
+    private static final Map<Type, MethodInvoker.ValueConverter<Object>> converters = Map.of(
+            double.class, MethodInvoker.ValueConverter.singleValue(Double::parseDouble),
+            float.class, MethodInvoker.ValueConverter.singleValue(Float::parseFloat),
+            long.class, MethodInvoker.ValueConverter.singleValue(Long::parseLong),
+            int.class, MethodInvoker.ValueConverter.singleValue(Integer::parseInt),
+            short.class, MethodInvoker.ValueConverter.singleValue(Short::parseShort),
+            byte.class, MethodInvoker.ValueConverter.singleValue(Byte::parseByte),
+            boolean.class, MethodInvoker.ValueConverter.singleValue(Boolean::parseBoolean),
+            String.class, MethodInvoker.ValueConverter.singleValue(s -> s)
+    );
+
+    static Optional<Object> convert(Parameter parameter, List<String> values) {
+        return Optional.ofNullable(converters.get(parameter.getType()))
+                .map(c -> c.fromString(values));
+    }
+}
+
+class ConstructorConverter {
+    public static Optional<Object> convert(Class<?> converter, String value) {
+        try {
+            return Optional.of(converter.getConstructor(String.class).newInstance(value));
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                 NoSuchMethodException e) {
+            return Optional.empty();
+        }
+    }
+}
+
+class FactoryConverter {
+
+    public static Optional<Object> convert(Class<?> converter, String value) {
+        try {
+            return Optional.of(converter.getMethod("valueOf", String.class).invoke(null, value));
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            return Optional.empty();
+        }
+    }
+
+}
+
+class MethodInvoker {
+
+    private static final ValueProvider pathParam = (parameter, uriInfo) ->
+            Optional.ofNullable(parameter.getAnnotation(PathParam.class))
+                    .map(annotation -> uriInfo.getPathParameters().get(annotation.value()));
+    private static final ValueProvider queryParam = (parameter, uriInfo) ->
+            Optional.ofNullable(parameter.getAnnotation(QueryParam.class))
+                    .map(annotation -> uriInfo.getQueryParameters().get(annotation.value()));
+    private static final List<ValueProvider> providers = List.of(pathParam, queryParam);
+
+    static Object invoke(Method method, ResourceContext resourceContext, UriInfoBuilder builder) {
         try {
             UriInfo uriInfo = builder.createUriInfo();
 
@@ -256,21 +315,9 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
     }
 
-
-    private static final ValueProvider pathParam = (parameter, uriInfo) ->
-            Optional.ofNullable(parameter.getAnnotation(PathParam.class))
-                    .map(annotation -> uriInfo.getPathParameters().get(annotation.value()));
-
-    private static final ValueProvider queryParam = (parameter, uriInfo) ->
-            Optional.ofNullable(parameter.getAnnotation(QueryParam.class))
-                    .map(annotation -> uriInfo.getQueryParameters().get(annotation.value()));
-
-    private static final List<ValueProvider> providers = List.of(pathParam, queryParam);
-
     interface ValueProvider {
         Optional<List<String>> provide(Parameter parameter, UriInfo uriInfo);
     }
-
 
     interface ValueConverter<T> {
         T fromString(List<String> values);
@@ -279,54 +326,6 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
             return values -> converter.apply(values.get(0));
         }
     }
-
-
-    @Override
-    public String toString() {
-        return method.getDeclaringClass().getSimpleName() + "." + method.getName();
-    }
-}
-
-class PrimitiveConverter {
-
-    private static final Map<Type, DefaultResourceMethod.ValueConverter<Object>> converters = Map.of(
-            double.class, DefaultResourceMethod.ValueConverter.singleValue(Double::parseDouble),
-            float.class, DefaultResourceMethod.ValueConverter.singleValue(Float::parseFloat),
-            long.class, DefaultResourceMethod.ValueConverter.singleValue(Long::parseLong),
-            int.class, DefaultResourceMethod.ValueConverter.singleValue(Integer::parseInt),
-            short.class, DefaultResourceMethod.ValueConverter.singleValue(Short::parseShort),
-            byte.class, DefaultResourceMethod.ValueConverter.singleValue(Byte::parseByte),
-            boolean.class, DefaultResourceMethod.ValueConverter.singleValue(Boolean::parseBoolean),
-            String.class, DefaultResourceMethod.ValueConverter.singleValue(s -> s)
-    );
-
-    static Optional<Object> convert(Parameter parameter, List<String> values) {
-        return Optional.ofNullable(converters.get(parameter.getType()))
-                .map(c -> c.fromString(values));
-    }
-}
-
-class ConstructorConverter {
-    public static Optional<Object> convert(Class<?> converter, String value) {
-        try {
-            return Optional.of(converter.getConstructor(String.class).newInstance(value));
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                 NoSuchMethodException e) {
-            return Optional.empty();
-        }
-    }
-}
-
-class FactoryConverter {
-
-    public static Optional<Object> convert(Class<?> converter, String value) {
-        try {
-            return Optional.of(converter.getMethod("valueOf", String.class).invoke(null, value));
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            return Optional.empty();
-        }
-    }
-
 }
 
 class SubResourceLocators {
