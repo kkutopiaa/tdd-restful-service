@@ -210,6 +210,12 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
 
     @Override
     public GenericEntity<?> call(ResourceContext resourceContext, UriInfoBuilder builder) {
+        Object result = invoke(method, resourceContext, builder);
+
+        return result != null ? new GenericEntity<>(result, method.getGenericReturnType()) : null;
+    }
+
+    private static Object invoke(Method method, ResourceContext resourceContext, UriInfoBuilder builder) {
         try {
             UriInfo uriInfo = builder.createUriInfo();
 
@@ -219,8 +225,7 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
                             .orElse(null)
                     ).toArray();
 
-            Object result = method.invoke(builder.getLastMatchedResource(), parameters);
-            return result != null ? new GenericEntity<>(result, method.getGenericReturnType()) : null;
+            return method.invoke(builder.getLastMatchedResource(), parameters);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
