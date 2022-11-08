@@ -218,7 +218,7 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
                             .map(provider -> provider.provide(parameter, uriInfo))
                             .filter(Optional::isPresent)
                             .findFirst()
-                            .flatMap(values -> values.map(v -> converters.get(parameter.getType()).fromString(v)))
+                            .flatMap(values -> values.flatMap(v -> convert(parameter, v)))
                             .orElse(null)
             ).toArray();
 
@@ -227,6 +227,11 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static Optional<Object> convert(Parameter parameter, List<String> values) {
+        return Optional.ofNullable(primitiveConverters.get(parameter.getType()))
+                .map(c -> c.fromString(values));
     }
 
 
@@ -245,7 +250,7 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
     }
 
 
-    private static final Map<Type, ValueConverter<?>> converters = Map.of(
+    private static final Map<Type, ValueConverter<?>> primitiveConverters = Map.of(
             double.class, ValueConverter.singleValue(Double::parseDouble),
             float.class, ValueConverter.singleValue(Float::parseFloat),
             long.class, ValueConverter.singleValue(Long::parseLong),
