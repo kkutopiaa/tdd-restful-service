@@ -121,7 +121,8 @@ public class DefaultResourceMethodTest {
                 new InjectableTypeTestCase(short.class, "128", (short) 128),
                 new InjectableTypeTestCase(byte.class, "127", (byte) 127),
                 new InjectableTypeTestCase(boolean.class, "TRUE", true),
-                new InjectableTypeTestCase(BigDecimal.class, "12345", new BigDecimal("12345"))
+                new InjectableTypeTestCase(BigDecimal.class, "12345", new BigDecimal("12345")),
+                new InjectableTypeTestCase(Converter.class, "Factory", Converter.Factory)
         );
 
         for (String type : paramTypes) {
@@ -172,18 +173,27 @@ public class DefaultResourceMethodTest {
 
         @GET
         String getPathParam(@PathParam("param") double value);
+
         @GET
         String getPathParam(@PathParam("param") float value);
+
         @GET
         String getPathParam(@PathParam("param") long value);
+
         @GET
         String getPathParam(@PathParam("param") short value);
+
         @GET
         String getPathParam(@PathParam("param") byte value);
+
         @GET
         String getPathParam(@PathParam("param") boolean value);
+
         @GET
         String getPathParam(@PathParam("param") BigDecimal value);
+
+        @GET
+        String getPathParam(@PathParam("param") Converter value);
 
 
         @GET
@@ -194,20 +204,32 @@ public class DefaultResourceMethodTest {
 
         @GET
         String getQueryParam(@QueryParam("param") double value);
+
         @GET
         String getQueryParam(@QueryParam("param") float value);
+
         @GET
         String getQueryParam(@QueryParam("param") short value);
+
         @GET
         String getQueryParam(@QueryParam("param") long value);
+
         @GET
         String getQueryParam(@QueryParam("param") byte value);
+
         @GET
         String getQueryParam(@QueryParam("param") boolean value);
 
         @GET
         String getQueryParam(@QueryParam("param") BigDecimal value);
 
+        @GET
+        String getQueryParam(@QueryParam("param") Converter value);
+
     }
 
+}
+
+enum Converter {
+    Primitive, Constructor, Factory;
 }
