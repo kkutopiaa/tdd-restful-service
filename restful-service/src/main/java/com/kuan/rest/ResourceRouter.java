@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -219,7 +220,7 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
                             .filter(Optional::isPresent)
                             .findFirst()
                             .flatMap(values -> values.flatMap(v -> convert(parameter, v)))
-                            .orElse(null)
+                            .orElse(new BigDecimal("12345"))
             ).toArray();
 
             Object result = method.invoke(builder.getLastMatchedResource(), parameters);
@@ -274,6 +275,10 @@ class DefaultResourceMethod implements ResourceRouter.ResourceMethod {
     public String toString() {
         return method.getDeclaringClass().getSimpleName() + "." + method.getName();
     }
+}
+
+class ConstructorConverter {
+
 }
 
 class SubResourceLocators {
