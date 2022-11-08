@@ -101,56 +101,6 @@ public class DefaultResourceMethodTest {
                 resourceMethod.call(context, builder));
     }
 
-    @Test
-    public void should_inject_string_to_path_param() {
-        String method = "getPathParam";
-        Class<String> type = String.class;
-        String paramString = "path";
-        String paramValue = "path";
-
-        verifyResourceMethodCalled(method, type, paramString, paramValue);
-    }
-
-    @Test
-    public void should_inject_int_to_path_param() {
-        String method = "getPathParam";
-        Class<Integer> type = int.class;
-        String paramString = "1";
-        int paramValue = 1;
-
-        verifyResourceMethodCalled(method, type, paramString, paramValue);
-    }
-
-    private void verifyResourceMethodCalled(String method, Class<?> type, String paramString, Object paramValue) {
-        DefaultResourceMethod resourceMethod = getResourceMethod(method, type);
-        parameters.put("param", List.of(paramString));
-
-        resourceMethod.call(context, builder);
-
-        assertEquals(getMethodName(method, List.of(type)), lastCall.name());
-        assertEquals(List.of(paramValue), lastCall.arguments());
-    }
-
-    @Test
-    public void should_inject_string_to_query_param() {
-        String method = "getQueryParam";
-        Class<String> type = String.class;
-        String paramString = "query";
-        String paramValue = "query";
-
-        verifyResourceMethodCalled(method, type, paramString, paramValue);
-    }
-
-    @Test
-    public void should_inject_int_to_query_param() {
-        String method = "getQueryParam";
-        Class<Integer> type = int.class;
-        String paramString = "1";
-        int paramValue = 1;
-
-        verifyResourceMethodCalled(method, type, paramString, paramValue);
-    }
-
 
     record InjectableTypeTestCase(Class<?> type, String string, Object value) {
 
@@ -178,8 +128,17 @@ public class DefaultResourceMethodTest {
         return tests;
     }
 
+    private void verifyResourceMethodCalled(String method, Class<?> type, String paramString, Object paramValue) {
+        DefaultResourceMethod resourceMethod = getResourceMethod(method, type);
+        parameters.put("param", List.of(paramString));
 
-    private DefaultResourceMethod getResourceMethod(String methodName, Class... types) {
+        resourceMethod.call(context, builder);
+
+        assertEquals(getMethodName(method, List.of(type)), lastCall.name());
+        assertEquals(List.of(paramValue), lastCall.arguments());
+    }
+
+    private DefaultResourceMethod getResourceMethod(String methodName, Class<?>... types) {
         try {
             return new DefaultResourceMethod(CallableResourceMethods.class.getMethod(methodName, types));
         } catch (NoSuchMethodException e) {
