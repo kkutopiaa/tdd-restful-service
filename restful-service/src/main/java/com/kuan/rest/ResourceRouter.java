@@ -267,10 +267,8 @@ class SubResourceLocators {
         public Optional<ResourceRouter.ResourceMethod>
         match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
               ResourceContext resourceContext, UriInfoBuilder builder) {
-            Object resource = builder.getLastMatchedResource();
-
             try {
-                Object subResource = method.invoke(resource);
+                Object subResource = MethodInvoker.invoke(method, resourceContext, builder);
                 return new ResourceHandler(subResource, uriTemplate)
                         .match(result, httpMethod, mediaTypes, resourceContext, builder);
             } catch (Exception e) {
