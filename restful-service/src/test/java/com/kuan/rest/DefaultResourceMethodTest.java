@@ -7,9 +7,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.GenericEntity;
-import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.UriInfo;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
@@ -26,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @Author: qxkk
@@ -34,28 +31,8 @@ import static org.mockito.Mockito.when;
  */
 public class DefaultResourceMethodTest extends InjectableCallerTest{
 
-    private Object resource;
-
-
-    @BeforeEach
-    public void before() {
-        lastCall = null;
-        resource = initResource();
-
-        context = mock(ResourceContext.class);
-        builder = mock(UriInfoBuilder.class);
-        uriInfo = mock(UriInfo.class);
-        service = mock(SameServiceInContext.class);
-        parameters = new MultivaluedHashMap<>();
-
-        when(builder.getLastMatchedResource()).thenReturn(resource);
-        when(builder.createUriInfo()).thenReturn(uriInfo);
-        when(uriInfo.getPathParameters()).thenReturn(parameters);
-        when(uriInfo.getQueryParameters()).thenReturn(parameters);
-        when(context.getResource(eq(SameServiceInContext.class))).thenReturn(service);
-    }
-
-    private Object initResource() {
+    @Override
+    protected Object initResource() {
         return Proxy.newProxyInstance(this.getClass().getClassLoader(),
                 new Class[]{CallableResourceMethods.class},
                 (proxy, method, args) -> {
