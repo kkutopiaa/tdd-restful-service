@@ -7,6 +7,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.NewCookie;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Providers;
 import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.junit.jupiter.api.Assertions;
@@ -64,6 +66,14 @@ public class IntegrationTest extends ServletTest {
                         return value.getName() + "=" + value.getValue();
                     }
                 });
+
+        when(providers.getExceptionMapper(any()))
+                .thenReturn(exception -> {
+                    exception.printStackTrace();
+                    return new StubResponseBuilder().status(500).build();
+                });
+
+
     }
 
     // get url (root/sub)
@@ -73,6 +83,12 @@ public class IntegrationTest extends ServletTest {
     @Test
     public void should_return_404_if_url_in_exist() {
         HttpResponse<String> response = get("/customers");
+        Assertions.assertEquals(404, response.statusCode());
+    }
+
+    @Test
+    public void should_return_404_if_user_not_exist() {
+        HttpResponse<String> response = get("/users/not-exist");
         Assertions.assertEquals(404, response.statusCode());
     }
 

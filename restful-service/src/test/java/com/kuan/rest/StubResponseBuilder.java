@@ -25,6 +25,7 @@ class StubResponseBuilder extends Response.ResponseBuilder {
         when(response.getEntity()).thenReturn(entity);
         when(response.getGenericEntity()).thenReturn((GenericEntity) entity);
         when(response.getStatus()).thenReturn(status);
+        when(response.getStatusInfo()).thenReturn(Response.Status.fromStatusCode(status));
         when(response.getAllowedMethods()).thenReturn(allowed);
         when(response.getHeaders()).thenReturn(new MultivaluedHashMap<>());
         return response;
