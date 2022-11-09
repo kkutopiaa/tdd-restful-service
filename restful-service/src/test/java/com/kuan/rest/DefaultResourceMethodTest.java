@@ -34,20 +34,13 @@ import static org.mockito.Mockito.when;
  */
 public class DefaultResourceMethodTest extends InjectableCallerTest{
 
-    private CallableResourceMethods resource;
+    private Object resource;
 
 
     @BeforeEach
     public void before() {
         lastCall = null;
-        resource = (CallableResourceMethods) Proxy.newProxyInstance(this.getClass().getClassLoader(),
-                new Class[]{CallableResourceMethods.class},
-                (proxy, method, args) -> {
-                    String name = getMethodName(method.getName(),
-                            Arrays.stream(method.getParameters()).map(Parameter::getType).toList());
-                    lastCall = new LastCall(name, args != null ? List.of(args) : List.of());
-                    return "getList".equals(method.getName()) ? new ArrayList<String>() : null;
-                });
+        resource = initResource();
 
         context = mock(ResourceContext.class);
         builder = mock(UriInfoBuilder.class);
@@ -60,6 +53,17 @@ public class DefaultResourceMethodTest extends InjectableCallerTest{
         when(uriInfo.getPathParameters()).thenReturn(parameters);
         when(uriInfo.getQueryParameters()).thenReturn(parameters);
         when(context.getResource(eq(SameServiceInContext.class))).thenReturn(service);
+    }
+
+    private Object initResource() {
+        return Proxy.newProxyInstance(this.getClass().getClassLoader(),
+                new Class[]{CallableResourceMethods.class},
+                (proxy, method, args) -> {
+                    String name = getMethodName(method.getName(),
+                            Arrays.stream(method.getParameters()).map(Parameter::getType).toList());
+                    lastCall = new LastCall(name, args != null ? List.of(args) : List.of());
+                    return "getList".equals(method.getName()) ? new ArrayList<String>() : null;
+                });
     }
 
     @Test

@@ -39,19 +39,12 @@ public class SubResourceLocatorTest {
     record LastCall(String name, List<Object> arguments) {
     }
 
-    private SubResourceMethods resource;
+    private Object resource;
 
     @BeforeEach
     public void before() {
         lastCall = null;
-        resource = (SubResourceMethods) Proxy.newProxyInstance(this.getClass().getClassLoader(),
-                new Class[]{SubResourceMethods.class},
-                (proxy, method, args) -> {
-                    String name = getMethodName(method.getName(),
-                            Arrays.stream(method.getParameters()).map(Parameter::getType).toList());
-                    lastCall = new LastCall(name, args != null ? List.of(args) : List.of());
-                    return new Message();
-                });
+        resource = initResource();
 
 
         context = mock(ResourceContext.class);
@@ -63,6 +56,17 @@ public class SubResourceLocatorTest {
         when(builder.getLastMatchedResource()).thenReturn(resource);
         when(builder.createUriInfo()).thenReturn(uriInfo);
         when(uriInfo.getPathParameters()).thenReturn(parameters);
+    }
+
+    private Object initResource() {
+        return Proxy.newProxyInstance(this.getClass().getClassLoader(),
+                new Class[]{SubResourceMethods.class},
+                (proxy, method, args) -> {
+                    String name = getMethodName(method.getName(),
+                            Arrays.stream(method.getParameters()).map(Parameter::getType).toList());
+                    lastCall = new LastCall(name, args != null ? List.of(args) : List.of());
+                    return new Message();
+                });
     }
 
 
