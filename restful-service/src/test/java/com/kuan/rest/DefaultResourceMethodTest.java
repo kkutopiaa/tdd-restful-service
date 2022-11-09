@@ -21,7 +21,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -33,23 +32,9 @@ import static org.mockito.Mockito.when;
  * @Author: qxkk
  * @Date: 2022/11/2
  */
-public class DefaultResourceMethodTest {
+public class DefaultResourceMethodTest extends InjectableCallerTest{
 
     private CallableResourceMethods resource;
-    private ResourceContext context;
-    private UriInfoBuilder builder;
-
-    private UriInfo uriInfo;
-    private MultivaluedHashMap<String, String> parameters;
-
-
-    private LastCall lastCall;
-
-    record LastCall(String name, List<Object> arguments) {
-
-    }
-
-    private SameServiceInContext service;
 
 
     @BeforeEach
@@ -77,20 +62,12 @@ public class DefaultResourceMethodTest {
         when(context.getResource(eq(SameServiceInContext.class))).thenReturn(service);
     }
 
-    private static String getMethodName(String methodName, List<? extends Class<?>> parameterTypes) {
-        return methodName + "("
-                + parameterTypes.stream()
-                .map(Class::getSimpleName)
-                .collect(Collectors.joining("."))
-                + ")";
-    }
-
     @Test
     public void should_call_resource_method() {
         DefaultResourceMethod resourceMethod = getResourceMethod("get");
         resourceMethod.call(context, builder);
 
-        assertEquals("get()", lastCall.name);
+        assertEquals("get()", lastCall.name());
     }
 
     @Test
