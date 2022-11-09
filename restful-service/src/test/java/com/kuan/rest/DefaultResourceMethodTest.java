@@ -164,9 +164,9 @@ public class DefaultResourceMethodTest {
     }
 
     private void verifyResourceMethodCalled(String method, Class<?> type, String paramString, Object paramValue) {
-        DefaultResourceMethod resourceMethod = getResourceMethod(method, type);
         parameters.put("param", List.of(paramString));
 
+        DefaultResourceMethod resourceMethod = getResourceMethod(method, type);
         resourceMethod.call(context, builder);
 
         assertEquals(getMethodName(method, List.of(type)), lastCall.name());

@@ -68,15 +68,18 @@ public class SubResourceLocatorTest {
 
     @Test
     public void should_inject_string_path_param_to_sub_resource_method() throws NoSuchMethodException {
-        Method method = SubResourceMethods.class.getMethod("getPathParam", String.class);
+        String methodName = "getPathParam";
+        Class<String> type = String.class;
+        String paramString = "path";
+        Object paramValue = "path";
+        parameters.put("param", List.of(paramString));
+
+        Method method = SubResourceMethods.class.getMethod(methodName, type);
         SubResourceLocators.SubResourceLocator locator = new SubResourceLocators.SubResourceLocator(method);
-
-        parameters.put("param", List.of("path"));
-
         locator.match(result, "GET", new String[0], context, builder);
 
-        assertEquals("getPathParam(String)", lastCall.name());
-        assertEquals(List.of("path"), lastCall.arguments());
+        assertEquals(getMethodName(methodName, List.of(type)), lastCall.name());
+        assertEquals(List.of(paramValue), lastCall.arguments());
     }
 
 
