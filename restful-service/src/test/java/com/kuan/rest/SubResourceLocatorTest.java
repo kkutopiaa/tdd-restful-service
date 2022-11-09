@@ -1,64 +1,38 @@
 package com.kuan.rest;
 
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.UriInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Proxy;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @Author: qxkk
  * @Date: 2022/11/9
  */
-public class SubResourceLocatorTest {
+public class SubResourceLocatorTest extends InjectableCallerTest {
 
     private UriTemplate.MatchResult result;
-    private ResourceContext context;
-    private UriInfoBuilder builder;
-    private UriInfo uriInfo;
-    private LastCall lastCall;
-    private MultivaluedMap<String, String> parameters;
-
-    record LastCall(String name, List<Object> arguments) {
-    }
-
-    private Object resource;
 
     @BeforeEach
     public void before() {
-        lastCall = null;
-        resource = initResource();
-
-
-        context = mock(ResourceContext.class);
-        builder = mock(UriInfoBuilder.class);
-        uriInfo = mock(UriInfo.class);
+        super.before();
         result = mock(UriTemplate.MatchResult.class);
-        parameters = new MultivaluedHashMap<>();
-
-        when(builder.getLastMatchedResource()).thenReturn(resource);
-        when(builder.createUriInfo()).thenReturn(uriInfo);
-        when(uriInfo.getPathParameters()).thenReturn(parameters);
     }
 
-    private Object initResource() {
+    @Override
+    protected Object initResource() {
         return Proxy.newProxyInstance(this.getClass().getClassLoader(),
                 new Class[]{SubResourceMethods.class},
                 (proxy, method, args) -> {
@@ -71,7 +45,7 @@ public class SubResourceLocatorTest {
 
 
     @Test
-    public void should_inject_string_path_param_to_sub_resource_method() throws NoSuchMethodException {
+    public void should_inject_string_path_param_to_sub_resource_method() {
         String method = "getPathParam";
         Class<String> type = String.class;
         String paramString = "path";
@@ -84,24 +58,86 @@ public class SubResourceLocatorTest {
         assertEquals(List.of(paramValue), lastCall.arguments());
     }
 
-    private void callInjectable(String method, Class<?> type) throws NoSuchMethodException {
-        SubResourceLocators.SubResourceLocator locator =
-                new SubResourceLocators.SubResourceLocator(SubResourceMethods.class.getMethod(method, type));
-        locator.match(result, "GET", new String[0], context, builder);
-    }
-
-
-    private static String getMethodName(String methodName, List<? extends Class<?>> classStream) {
-        return methodName + "("
-                + classStream.stream()
-                .map(Class::getSimpleName)
-                .collect(Collectors.joining("."))
-                + ")";
+    @Override
+    protected void callInjectable(String method, Class<?> type) {
+        try {
+            SubResourceLocators.SubResourceLocator locator =
+                    new SubResourceLocators.SubResourceLocator(SubResourceMethods.class.getMethod(method, type));
+            locator.match(result, "GET", new String[0], context, builder);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     interface SubResourceMethods {
         @Path("/message")
         Message getPathParam(@PathParam("param") String path);
+
+        @Path("/message")
+        Message getPathParam(@PathParam("param") int value);
+
+        @Path("/message")
+        Message getPathParam(@PathParam("param") double value);
+
+        @Path("/message")
+        Message getPathParam(@PathParam("param") float value);
+
+        @Path("/message")
+        Message getPathParam(@PathParam("param") long value);
+
+        @Path("/message")
+        Message getPathParam(@PathParam("param") short value);
+
+        @Path("/message")
+        Message getPathParam(@PathParam("param") byte value);
+
+        @Path("/message")
+        Message getPathParam(@PathParam("param") boolean value);
+
+        @Path("/message")
+        Message getPathParam(@PathParam("param") BigDecimal value);
+
+        @Path("/message")
+        Message getPathParam(@PathParam("param") Converter value);
+
+        @Path("/message")
+        Message getQueryParam(@QueryParam("param") String value);
+
+        @Path("/message")
+        Message getQueryParam(@QueryParam("param") int value);
+
+        @Path("/message")
+        Message getQueryParam(@QueryParam("param") double value);
+
+        @Path("/message")
+        Message getQueryParam(@QueryParam("param") float value);
+
+        @Path("/message")
+        Message getQueryParam(@QueryParam("param") short value);
+
+        @Path("/message")
+        Message getQueryParam(@QueryParam("param") long value);
+
+        @Path("/message")
+        Message getQueryParam(@QueryParam("param") byte value);
+
+        @Path("/message")
+        Message getQueryParam(@QueryParam("param") boolean value);
+
+        @Path("/message")
+        Message getQueryParam(@QueryParam("param") BigDecimal value);
+
+        @Path("/message")
+        Message getQueryParam(@QueryParam("param") Converter value);
+
+        @Path("/message")
+        Message getContext(@Context SameServiceInContext service);
+
+        @Path("/message")
+        Message getContext(@Context ResourceContext service);
+
+        @Path("/message")
+        Message getContext(@Context UriInfo service);
     }
 
     static class Message {
