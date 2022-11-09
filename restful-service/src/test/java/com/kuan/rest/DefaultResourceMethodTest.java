@@ -77,9 +77,9 @@ public class DefaultResourceMethodTest {
         when(context.getResource(eq(SameServiceInContext.class))).thenReturn(service);
     }
 
-    private static String getMethodName(String methodName, List<? extends Class<?>> classStream) {
+    private static String getMethodName(String methodName, List<? extends Class<?>> parameterTypes) {
         return methodName + "("
-                + classStream.stream()
+                + parameterTypes.stream()
                 .map(Class::getSimpleName)
                 .collect(Collectors.joining("."))
                 + ")";
