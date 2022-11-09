@@ -166,11 +166,15 @@ public class DefaultResourceMethodTest {
     private void verifyResourceMethodCalled(String method, Class<?> type, String paramString, Object paramValue) {
         parameters.put("param", List.of(paramString));
 
-        DefaultResourceMethod resourceMethod = getResourceMethod(method, type);
-        resourceMethod.call(context, builder);
+        callInjectable(method, type);
 
         assertEquals(getMethodName(method, List.of(type)), lastCall.name());
         assertEquals(List.of(paramValue), lastCall.arguments());
+    }
+
+    private void callInjectable(String method, Class<?> type) {
+        DefaultResourceMethod resourceMethod = getResourceMethod(method, type);
+        resourceMethod.call(context, builder);
     }
 
     private DefaultResourceMethod getResourceMethod(String methodName, Class<?>... types) {
