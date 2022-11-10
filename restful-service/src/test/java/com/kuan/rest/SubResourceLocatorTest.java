@@ -5,6 +5,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +17,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @Author: qxkk
@@ -25,10 +27,17 @@ public class SubResourceLocatorTest extends InjectableCallerTest {
 
     private UriTemplate.MatchResult result;
 
+    private RuntimeDelegate delegate;
+
+
     @BeforeEach
     public void before() {
         super.before();
         result = mock(UriTemplate.MatchResult.class);
+
+        delegate = mock(RuntimeDelegate.class);
+        RuntimeDelegate.setInstance(delegate);
+        when(delegate.createResponseBuilder()).thenReturn(new StubResponseBuilder());
     }
 
     @Override
