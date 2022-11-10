@@ -1,13 +1,11 @@
 package com.kuan.rest;
 
 import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.PathSegment;
-import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author: qinxuekuan
@@ -40,6 +38,10 @@ class StubUriInfoBuilder implements UriInfoBuilder {
     @Override
     public UriInfo createUriInfo() {
         return uriInfo;
+    }
+
+    public MultivaluedMap<String, String> getPathParameters() {
+        return null;
     }
 
 }

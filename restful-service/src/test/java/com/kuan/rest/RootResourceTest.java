@@ -12,6 +12,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -104,6 +105,22 @@ public class RootResourceTest {
         assertTrue(uriInfoBuilder.getLastMatchedResource() instanceof Messages);
 
     }
+
+    @Test
+    public void should_add_last_match_path_parameters_uri_info_builder() {
+
+        StubUriInfoBuilder uriInfoBuilder = new StubUriInfoBuilder();
+
+        ResourceHandler resource = new ResourceHandler(Messages.class);
+        UriTemplate.MatchResult result = resource.getUriTemplate().match("/messages/1").get();
+
+        resource.match(result, "GET", new String[]{MediaType.TEXT_PLAIN}, resourceContext, uriInfoBuilder);
+
+        assertTrue(uriInfoBuilder.getLastMatchedResource() instanceof Message);
+
+        assertEquals(List.of("1"), uriInfoBuilder.getPathParameters().get("id"));
+    }
+
 
     @Test
     public void should_throw_illegal_argument_exception_if_root_resource_not_have_path_annotation() {
