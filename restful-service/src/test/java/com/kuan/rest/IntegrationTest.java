@@ -6,8 +6,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.NewCookie;
-import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.*;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Providers;
 import jakarta.ws.rs.ext.RuntimeDelegate;
@@ -34,6 +33,8 @@ public class IntegrationTest extends ServletTest {
     private ResourceContext resourceContext;
     private Providers providers;
     private RuntimeDelegate delegate;
+    private UriInfo uriInfo;
+    private MultivaluedMap<String, String> parameters;
 
     @Override
     protected Servlet getServlet() {
@@ -41,10 +42,17 @@ public class IntegrationTest extends ServletTest {
         router = new DefaultResourceRoot(runtime, List.of(new ResourceHandler(UsersApi.class)));
         resourceContext = mock(ResourceContext.class);
         providers = mock(Providers.class);
+        uriInfo = mock(UriInfo.class);
+
+        parameters = new MultivaluedHashMap<>();
+        parameters.put("id", List.of("not-exist"));
+        when(uriInfo.getPathParameters()).thenReturn(parameters);
 
         when(runtime.getResourceRouter()).thenReturn(router);
         when(runtime.createResourceContext(any(), any())).thenReturn(resourceContext);
+        when(runtime.createUriInfoBuilder(any())).thenReturn(new StubUriInfoBuilder(uriInfo));
         when(runtime.getProviders()).thenReturn(providers);
+        when(resourceContext.getResource(eq(UsersApi.class))).thenReturn(new UsersApi());
 
         return new ResourceServlet(runtime);
     }

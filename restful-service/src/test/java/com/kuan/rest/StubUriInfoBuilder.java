@@ -1,7 +1,11 @@
 package com.kuan.rest;
 
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,8 +17,14 @@ class StubUriInfoBuilder implements UriInfoBuilder {
 
     private List<Object> matchedResult = new ArrayList<>();
 
+    private UriInfo uriInfo;
+
     public StubUriInfoBuilder() {
         matchedResult.add(new SubResourceLocatorsTest.Messages());
+    }
+
+    public StubUriInfoBuilder(UriInfo uriInfo) {
+        this.uriInfo = uriInfo;
     }
 
     @Override
@@ -29,7 +39,7 @@ class StubUriInfoBuilder implements UriInfoBuilder {
 
     @Override
     public UriInfo createUriInfo() {
-        return null;
+        return uriInfo;
     }
 
 }
