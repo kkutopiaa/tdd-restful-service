@@ -6,19 +6,20 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.*;
-import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.NewCookie;
+import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.Providers;
 import jakarta.ws.rs.ext.RuntimeDelegate;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -45,9 +46,6 @@ public class IntegrationTest extends ServletTest {
         providers = mock(Providers.class);
         uriInfo = mock(UriInfo.class);
 
-        parameters = new MultivaluedHashMap<>();
-        parameters.put("id", List.of("not-exist"));
-        when(uriInfo.getPathParameters()).thenReturn(parameters);
 
         when(runtime.getResourceRouter()).thenReturn(router);
         when(runtime.createResourceContext(any(), any())).thenReturn(resourceContext);
@@ -92,13 +90,29 @@ public class IntegrationTest extends ServletTest {
     @Test
     public void should_return_404_if_url_in_exist() {
         HttpResponse<String> response = get("/customers");
-        Assertions.assertEquals(404, response.statusCode());
+        assertEquals(404, response.statusCode());
     }
 
     @Test
     public void should_return_404_if_user_not_exist() {
+        parameters = new MultivaluedHashMap<>();
+        parameters.put("id", List.of("not-exist"));
+        when(uriInfo.getPathParameters()).thenReturn(parameters);
+
         HttpResponse<String> response = get("/users/not-exist");
-        Assertions.assertEquals(404, response.statusCode());
+        assertEquals(404, response.statusCode());
+    }
+
+    @Test
+    public void should_return_to_string_of_user_if_user_exist() {
+        parameters = new MultivaluedHashMap<>();
+        parameters.put("id", List.of("john-smith"));
+        when(uriInfo.getPathParameters()).thenReturn(parameters);
+
+        HttpResponse<String> response = get("/users/john-smith");
+        assertEquals(200, response.statusCode());
+        assertEquals(new User("john-smith", new UserData("john smith", "john.smith@email.com")).toString(),
+                response.body());
     }
 
 }
@@ -136,6 +150,14 @@ class User {
     public int hashCode() {
         return Objects.hash(id);
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id='" + id + '\'' +
+                ", data=" + data +
+                '}';
+    }
 }
 
 
@@ -171,7 +193,7 @@ class UserApi {
 
     @GET
     public String get() {
-        return "";
+        return user.toString();
     }
 
 }
