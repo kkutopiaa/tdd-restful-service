@@ -12,6 +12,7 @@ import jakarta.ws.rs.ext.Providers;
 import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.net.http.HttpResponse;
@@ -95,6 +96,7 @@ public class IntegrationTest extends ServletTest {
     }
 
     @Test
+    @Disabled
     public void should_return_404_if_user_not_exist() {
         HttpResponse<String> response = get("/users/not-exist");
         Assertions.assertEquals(404, response.statusCode());

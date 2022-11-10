@@ -39,6 +39,11 @@ public class SubResourceLocatorTest extends InjectableCallerTest {
                     String name = getMethodName(method.getName(),
                             Arrays.stream(method.getParameters()).map(Parameter::getType).toList());
                     lastCall = new LastCall(name, args != null ? List.of(args) : List.of());
+
+                    if (method.getName().equals("throwWebApplicationException")) {
+                        throw new WebApplicationException(300);
+                    }
+
                     return new Message();
                 });
     }
@@ -57,6 +62,19 @@ public class SubResourceLocatorTest extends InjectableCallerTest {
         assertEquals(getMethodName(method, List.of(type)), lastCall.name());
         assertEquals(List.of(paramValue), lastCall.arguments());
     }
+
+
+    @Test
+    public void should_get_wrap_around_web_application_exception() {
+        parameters.put("param", List.of("param"));
+
+        try {
+            callInjectable("throwWebApplicationException", String.class);
+        } catch (WebApplicationException e) {
+            assertEquals(300, e.getResponse().getStatus());
+        }
+    }
+
 
     @Override
     protected void callInjectable(String method, Class<?> type) {
@@ -138,6 +156,9 @@ public class SubResourceLocatorTest extends InjectableCallerTest {
 
         @Path("/message")
         Message getContext(@Context UriInfo service);
+
+        @Path("/message/{param}")
+        Message throwWebApplicationException(@PathParam("param") String path);
     }
 
     static class Message {
