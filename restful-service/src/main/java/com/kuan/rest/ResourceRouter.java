@@ -1,10 +1,8 @@
 package com.kuan.rest;
 
+import com.sun.source.tree.CatchTree;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.HttpMethod;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -271,6 +269,8 @@ class SubResourceLocators {
                 Object subResource = MethodInvoker.invoke(method, resourceContext, builder);
                 return new ResourceHandler(subResource, uriTemplate)
                         .match(result, httpMethod, mediaTypes, resourceContext, builder);
+            } catch (WebApplicationException e) {
+                throw e;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
