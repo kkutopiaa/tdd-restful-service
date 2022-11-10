@@ -5,6 +5,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -118,6 +119,9 @@ public class RootResourceTest {
         assertTrue(uriInfoBuilder.getLastMatchedResource() instanceof Message);
 
         assertEquals(List.of("1"), uriInfoBuilder.getPathParameters().get("id"));
+
+        UriInfo uriInfo = uriInfoBuilder.createUriInfo();
+        assertEquals(List.of("1"), uriInfo.getPathParameters().get("id"));
     }
 
 
