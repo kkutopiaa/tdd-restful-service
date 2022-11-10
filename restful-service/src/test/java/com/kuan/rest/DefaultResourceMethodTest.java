@@ -1,9 +1,6 @@
 package com.kuan.rest;
 
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.GenericEntity;
@@ -34,6 +31,11 @@ public class DefaultResourceMethodTest extends InjectableCallerTest{
                     String name = getMethodName(method.getName(),
                             Arrays.stream(method.getParameters()).map(Parameter::getType).toList());
                     lastCall = new LastCall(name, args != null ? List.of(args) : List.of());
+
+                    if (method.getName().equals("throwWebApplicationException")) {
+                        throw new WebApplicationException(300);
+                    }
+
                     return "getList".equals(method.getName()) ? new ArrayList<String>() : null;
                 });
     }
@@ -156,6 +158,8 @@ public class DefaultResourceMethodTest extends InjectableCallerTest{
         @GET
         String getContext(@Context UriInfo service);
 
+        @GET
+        String throwWebApplicationException(@PathParam("param") String path);
     }
 
 }

@@ -27,17 +27,10 @@ public class SubResourceLocatorTest extends InjectableCallerTest {
 
     private UriTemplate.MatchResult result;
 
-    private RuntimeDelegate delegate;
-
-
     @BeforeEach
     public void before() {
         super.before();
         result = mock(UriTemplate.MatchResult.class);
-
-        delegate = mock(RuntimeDelegate.class);
-        RuntimeDelegate.setInstance(delegate);
-        when(delegate.createResponseBuilder()).thenReturn(new StubResponseBuilder());
     }
 
     @Override
@@ -71,19 +64,6 @@ public class SubResourceLocatorTest extends InjectableCallerTest {
         assertEquals(getMethodName(method, List.of(type)), lastCall.name());
         assertEquals(List.of(paramValue), lastCall.arguments());
     }
-
-
-    @Test
-    public void should_get_wrap_around_web_application_exception() {
-        parameters.put("param", List.of("param"));
-
-        try {
-            callInjectable("throwWebApplicationException", String.class);
-        } catch (WebApplicationException e) {
-            assertEquals(300, e.getResponse().getStatus());
-        }
-    }
-
 
     @Override
     protected void callInjectable(String method, Class<?> type) {

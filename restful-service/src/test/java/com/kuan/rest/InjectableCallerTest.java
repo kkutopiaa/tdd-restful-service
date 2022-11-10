@@ -1,10 +1,13 @@
 package com.kuan.rest;
 
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.function.Executable;
 
@@ -31,6 +34,8 @@ public abstract class InjectableCallerTest {
     protected SameServiceInContext service;
     protected Object resource;
 
+    protected RuntimeDelegate delegate;
+
     @BeforeEach
     public void before() {
         lastCall = null;
@@ -47,6 +52,10 @@ public abstract class InjectableCallerTest {
         when(uriInfo.getPathParameters()).thenReturn(parameters);
         when(uriInfo.getQueryParameters()).thenReturn(parameters);
         when(context.getResource(eq(SameServiceInContext.class))).thenReturn(service);
+
+        delegate = mock(RuntimeDelegate.class);
+        RuntimeDelegate.setInstance(delegate);
+        when(delegate.createResponseBuilder()).thenReturn(new StubResponseBuilder());
     }
 
     protected abstract Object initResource();
@@ -106,6 +115,17 @@ public abstract class InjectableCallerTest {
         }
 
         return tests;
+    }
+
+    @Test
+    public void should_get_wrap_around_web_application_exception() {
+        parameters.put("param", List.of("param"));
+
+        try {
+            callInjectable("throwWebApplicationException", String.class);
+        } catch (WebApplicationException e) {
+            assertEquals(300, e.getResponse().getStatus());
+        }
     }
 
     private void verifyResourceMethodCalled(String method, Class<?> type, String paramString, Object paramValue) {
