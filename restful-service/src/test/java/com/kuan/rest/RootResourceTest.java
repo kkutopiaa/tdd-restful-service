@@ -108,7 +108,6 @@ public class RootResourceTest {
 
     @Test
     public void should_add_last_match_path_parameters_uri_info_builder() {
-
         StubUriInfoBuilder uriInfoBuilder = new StubUriInfoBuilder();
 
         ResourceHandler resource = new ResourceHandler(Messages.class);

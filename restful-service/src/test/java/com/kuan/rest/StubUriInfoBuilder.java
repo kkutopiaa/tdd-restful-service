@@ -1,5 +1,6 @@
 package com.kuan.rest;
 
+import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.UriInfo;
 
@@ -16,6 +17,8 @@ class StubUriInfoBuilder implements UriInfoBuilder {
     private List<Object> matchedResult = new ArrayList<>();
 
     private UriInfo uriInfo;
+
+    private MultivaluedMap<String, String> paramters = new MultivaluedHashMap();
 
     public StubUriInfoBuilder() {
         matchedResult.add(new SubResourceLocatorsTest.Messages());
@@ -40,8 +43,15 @@ class StubUriInfoBuilder implements UriInfoBuilder {
         return uriInfo;
     }
 
+    @Override
+    public void addMatchedPathParameters(Map<String, String> pathParameters) {
+        for (String key : pathParameters.keySet()) {
+            this.paramters.add(key, pathParameters.get(key));
+        }
+    }
+
     public MultivaluedMap<String, String> getPathParameters() {
-        return null;
+        return paramters;
     }
 
 }
