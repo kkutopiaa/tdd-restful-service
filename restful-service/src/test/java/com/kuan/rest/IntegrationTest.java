@@ -96,7 +96,6 @@ public class IntegrationTest extends ServletTest {
     }
 
     @Test
-    @Disabled
     public void should_return_404_if_user_not_exist() {
         HttpResponse<String> response = get("/users/not-exist");
         Assertions.assertEquals(404, response.statusCode());
