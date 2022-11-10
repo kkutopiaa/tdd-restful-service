@@ -316,6 +316,7 @@ class ResourceHandler implements ResourceRouter.Resource {
     match(UriTemplate.MatchResult result, String httpMethod, String[] mediaTypes,
           ResourceContext resourceContext, UriInfoBuilder builder) {
         builder.addMatchedResource(resource.apply(resourceContext));
+        builder.addMatchedPathParameters(result.getMatchedPathParameters());
 
         String remaining = Optional.ofNullable(result.getRemaining()).orElse("");
         return resourceMethods.findResourceMethods(remaining, httpMethod)
