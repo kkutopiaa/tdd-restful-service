@@ -6,14 +6,16 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.NewCookie;
+import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.MessageBodyWriter;
 import jakarta.ws.rs.ext.Providers;
 import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
@@ -39,7 +41,6 @@ public class IntegrationTest extends ServletTest {
     private Providers providers;
     private RuntimeDelegate delegate;
     private UriInfo uriInfo;
-    private MultivaluedMap<String, String> parameters;
 
     @Override
     protected Servlet getServlet() {
@@ -86,12 +87,15 @@ public class IntegrationTest extends ServletTest {
         when(providers.getMessageBodyWriter(eq(String.class), eq(String.class), any(), any()))
                 .thenReturn(new MessageBodyWriter<>() {
                     @Override
-                    public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+                    public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations,
+                                               MediaType mediaType) {
                         return true;
                     }
 
                     @Override
-                    public void writeTo(String s, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
+                    public void writeTo(String s, Class<?> type, Type genericType, Annotation[] annotations,
+                                        MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
+                                        OutputStream entityStream) throws WebApplicationException {
                         PrintWriter writer = new PrintWriter(entityStream);
                         writer.write(s);
                         writer.flush();
@@ -100,10 +104,6 @@ public class IntegrationTest extends ServletTest {
 
     }
 
-    // get url (root/sub)
-    // get url throw exception
-
-    // get url in exist
     @Test
     public void should_return_404_if_url_in_exist() {
         HttpResponse<String> response = get("/customers");
@@ -112,9 +112,7 @@ public class IntegrationTest extends ServletTest {
 
     @Test
     public void should_return_404_if_user_not_exist() {
-        parameters = new MultivaluedHashMap<>();
-        parameters.put("id", List.of("not-exist"));
-        when(uriInfo.getPathParameters()).thenReturn(parameters);
+        when(resourceContext.getResource(eq(String.class))).thenReturn("not-exist");
 
         HttpResponse<String> response = get("/users/not-exist");
         assertEquals(404, response.statusCode());
@@ -122,9 +120,7 @@ public class IntegrationTest extends ServletTest {
 
     @Test
     public void should_return_to_string_of_user_if_user_exist() {
-        parameters = new MultivaluedHashMap<>();
-        parameters.put("id", List.of("john-smith"));
-        when(uriInfo.getPathParameters()).thenReturn(parameters);
+        when(resourceContext.getResource(eq(String.class))).thenReturn("john-smith");
 
         HttpResponse<String> response = get("/users/john-smith");
         assertEquals(200, response.statusCode());
